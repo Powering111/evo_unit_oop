@@ -4,7 +4,8 @@ class Counter :
     def __init__ (self, v: int): 
         self.value = v
 
-    def report (self): 
+    def report (self) -> int:
+        print(self.value)
         return self.value
 
     def reset (self) : 
