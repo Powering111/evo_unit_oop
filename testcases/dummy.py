@@ -1,5 +1,3 @@
-from typing import Self
-
 class Counter : 
     def __init__ (self, v: int): 
         self.value = v
@@ -17,5 +15,5 @@ class Counter :
     def decr (self) : 
         self.value -= 1
 
-    def __add__ (self, other: Self) -> Self:
+    def __add__ (self, other):
         return Counter(self.value + other.value)
