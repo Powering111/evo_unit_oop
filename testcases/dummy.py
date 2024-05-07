@@ -3,7 +3,7 @@ class Counter :
         self.value = v
 
     def report (self) -> int:
-        print(self.value)
+        print("I am reporting", self.value)
         return self.value
 
     def reset (self) : 

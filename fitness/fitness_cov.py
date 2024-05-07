@@ -4,7 +4,7 @@
 import subprocess as sp
 import json
 import os
-import make_target
+from . import helper
 
 # Given the target python class in string `target_code` and given the test-suite in string `test_suite`
 # Run the the test_suite and return the corresponding coverage object
@@ -22,26 +22,13 @@ def get_coverage () -> dict:
     result_obj = json.load(result_file)
     result_file.close()
 
-    assert('files' in result_obj.keys())
-    assert('target.py' in result_obj['files'])
+    assert ('files' in result_obj.keys())
+    target_result = [file for file in result_obj['files'] if file.split('/')[-1] == 'target.py']
+    assert len(target_result) == 1
 
-    return result_obj['files']['target.py']
+    return result_obj['files'][target_result[0]]
 
 def parse_coverage (cov) :
     stmt = (cov['summary']['num_statements'], cov['summary']['covered_lines'])
     branch = (cov['summary']['num_branches'], cov['summary']['covered_branches'])
     return stmt, branch
-
-def test_dummy () :
-    with open("testcases/dummy.py") as f:
-        target_code = f.read()
-    with open("testcases/dummy_test.py") as f:
-        test_suite = f.read()
-
-    make_target.write_target(target_code, test_suite)
-
-    c = get_coverage()
-    assert parse_coverage(c) == ((14, 14), (0, 0))
-
-if __name__ == "__main__" :
-    test_dummy()

@@ -1,6 +1,6 @@
 import os 
 import subprocess as sp
-import make_target
+from . import helper
 
 def get_mutation ():
     # run mutatest
@@ -14,7 +14,7 @@ def test_dummy () :
     with open("testcases/dummy_test.py") as f:
         test_suite = f.read()
 
-    make_target.write_target(target_code, test_suite)
+    helper.write_target(target_code, test_suite)
 
     c = get_mutation()
     print(c)
