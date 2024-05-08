@@ -78,3 +78,25 @@ if __name__ == '__main__':
     finder = ClassFinder()
     finder.visit(root)
     finder.report()
+
+    # Create Test file
+    # Run `python evolution/evolution.py -t testcases/dummy.py`
+    f = open("testcases/testsuites/"+target[10:-3]+"_test.py", "w")
+    f.write("import pytest\n\n")
+    f.write("import target\n")
+    f.write(f"from {target[10:-3]} import *\n\n")
+    f.write("def test_example():\n")
+    for classObj in finder.classList:
+        for methodName, methodArgs in classObj.methods.items():
+            argsList = []
+            for methodArgName, methodArgType in methodArgs.items():
+                if methodArgType == "int":
+                    argsList.append("0")
+                elif methodArgType == "str":
+                    argsList.append("'a'")
+                elif methodArgType == "Self":
+                    argsList.append("c")
+            if methodName == "__init__":
+                f.write(f"    c = target.{classObj.name}({', '.join(argsList)}) \n")
+            else:
+                f.write(f"    c.{methodName}({', '.join(argsList)}) \n")
