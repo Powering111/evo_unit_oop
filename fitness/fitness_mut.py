@@ -8,17 +8,12 @@ def get_mutation ():
     result = sp.run("mutatest -s . -t pytest", shell=True, check=True, capture_output=True)
     return result.stdout.decode()
 
-def test_dummy () :
-    with open("testcases/dummy.py") as f:
-        target_code = f.read()
-    with open("testcases/dummy_test.py") as f:
-        test_suite = f.read()
+def parse_mutation (response) :
+    lines = response.split('\n')
+    detected = [line for line in lines if "DETECTED: " in line]
+    total_run = [line for line in lines if "TOTAL RUNS: " in line]
 
-    helper.write_target(target_code, test_suite)
+    assert len(detected) == 1
+    assert len(total_run) == 1
 
-    c = get_mutation()
-    print(c)
-    # TO BE PARSED
-
-if __name__ == "__main__" :
-    test_dummy()
+    return (int(detected[0].split()[-1]), int(total_run[0].split()[-1]))

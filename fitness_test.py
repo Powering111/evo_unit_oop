@@ -6,6 +6,12 @@ def test_fitness_cov () :
     assert fitness_cov.parse_coverage(c) == ((14, 14), (0, 0))
     print("Coverage tested")
 
+def test_fitness_mut () :
+    r = fitness_mut.get_mutation()
+    result = fitness_mut.parse_mutation(r)
+    assert result == (12, 12)
+    print("Mutation tested")
+
 def test_rewrite_target (): 
     helper.make_testsuite()
     result = sp.run("diff ./testcases/dummy_test_oracle.py /tmp/oop_test_gen/test_target.py",
@@ -23,6 +29,7 @@ def test_dummy ():
 
     test_rewrite_target()
     test_fitness_cov()
+    test_fitness_mut()
     print("Dummy File Tested")
 
 
