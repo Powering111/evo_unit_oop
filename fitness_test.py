@@ -27,10 +27,10 @@ def test_dummy ():
 
     helper.write_target(target_code, test_suite)
 
-    # test_rewrite_target()
-    # test_fitness_cov()
-    # test_fitness_mut()
-    # print("Dummy File Tested")
+    test_rewrite_target()
+    test_fitness_cov()
+    test_fitness_mut()
+    print("Dummy File Tested")
 
     print(combine.fitness_score())
 
