@@ -27,7 +27,6 @@ class ClassFinder(ast.NodeVisitor):
         for cls in self.classList:
             cls.report()
         
-
 class ClassScanner():
     def __init__(self):
         self.name = ""
