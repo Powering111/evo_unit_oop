@@ -3,7 +3,7 @@ import subprocess as sp
 
 def test_fitness_cov () :
     c = fitness_cov.get_coverage()
-    assert fitness_cov.parse_coverage(c) == ((14, 14), (0, 0))
+    assert fitness_cov.parse_coverage(c) == ((15, 15), (0, 0))
     print("Coverage tested")
 
 def test_fitness_mut () :
