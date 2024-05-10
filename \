@@ -1,0 +1,5 @@
+from . import fitness_cov, fitness_mut
+
+def fitness_score () : 
+    result = fitness_cov.get_coverage(c)
+    c = fitnes

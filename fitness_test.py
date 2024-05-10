@@ -1,4 +1,4 @@
-from fitness import fitness_cov, fitness_mut, helper
+from fitness import fitness_cov, fitness_mut, helper, combine
 import subprocess as sp
 
 def test_fitness_cov () :
@@ -27,10 +27,12 @@ def test_dummy ():
 
     helper.write_target(target_code, test_suite)
 
-    test_rewrite_target()
-    test_fitness_cov()
-    test_fitness_mut()
-    print("Dummy File Tested")
+    # test_rewrite_target()
+    # test_fitness_cov()
+    # test_fitness_mut()
+    # print("Dummy File Tested")
+
+    print(combine.fitness_score())
 
 
 if __name__ == "__main__" :

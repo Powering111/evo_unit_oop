@@ -29,6 +29,15 @@ def get_coverage () -> dict:
     return result_obj['files'][target_result[0]]
 
 def parse_coverage (cov) :
-    stmt = (cov['summary']['num_statements'], cov['summary']['covered_lines'])
-    branch = (cov['summary']['num_branches'], cov['summary']['covered_branches'])
+    stmt = (cov['summary']['covered_lines'], cov['summary']['num_statements'])
+    branch = (cov['summary']['covered_branches'], cov['summary']['num_branches'])
     return stmt, branch
+
+def coverage_score (): 
+    c = parse_coverage(get_coverage())
+
+    stmt_cov = c[0][0] / c[0][1] if c[0][1] != 0 else 0
+    branch_cov = c[1][0] / c[1][1] if c[1][1] != 0 else 0
+
+    return (stmt_cov + branch_cov)
+

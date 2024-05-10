@@ -17,3 +17,7 @@ def parse_mutation (response) :
     assert len(total_run) == 1
 
     return (int(detected[0].split()[-1]), int(total_run[0].split()[-1]))
+
+def mutation_score (): 
+    m = parse_mutation(get_mutation())
+    return (m[0] / m[1] if m[1] != 0 else 0)
