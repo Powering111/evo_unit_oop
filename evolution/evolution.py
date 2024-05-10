@@ -93,14 +93,14 @@ class RandomObject():
         return bool(random.randint(0, 1))
     # def rand_array():
 
-'''def RandomMethodCall(Class:ClassScanner, method_name:str):
+def RandomMethodCall(Class:ClassScanner, method_name:str):
     method_args = Class.methods[method_name]
     args = []
     for arg_name, arg_type in method_args:
         args.add(getattr(RandomObject, f"rand_{arg_type}")())
-    return MethodCall(method_name, args)'''
+    return MethodCall(method_name, args)
 
-m = MethodCall("method1", 4, 5, val=5)
+m = MethodCall("method1", [4, 5])
 print(m.call_str)
 
 if __name__ == '__main__':
