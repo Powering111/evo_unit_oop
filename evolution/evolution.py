@@ -22,8 +22,8 @@ class ClassFinder(ast.NodeVisitor):
 class ClassScanner():
     def __init__(self):
         self.name = ""
-        self.attributes = dict() # attribute name - type
-        self.methods = dict() # method name - dictionary of arguments
+        self.attributes = dict() # key:attribute_name, value: type
+        self.methods = dict() # key:method_name, value:dictionary of arguments
 
     def visit(self, node):
         self.name = node.name
@@ -57,16 +57,7 @@ class ClassScanner():
         print(self.name)    
         print(self.attributes)
         print(self.methods)
-    
-class Genome():
-    def __init__(self, class_name, *args, **kwargs):
-        self.class_name = class_name
-        self.init_value = (args, kwargs)
-        self.method_call_lst:list[MethodCall] = []
-    def add_methodcall(self, methodcall:MethodCall):
-        self.method_call_lst.add(methodcall)
-    
-    
+
 class MethodCall():
     def __init__(self, method_name, *args, **kwargs):
         self.method_name = method_name
@@ -79,9 +70,25 @@ class MethodCall():
         for key, val in self.kwargs.items():
             arg_str += f"{key}={val}, "
         return f".{self.method_name}({arg_str})"
-    
-gene1 = Genome("class1", arg1, arg2)
-gene1.add_methodcall(MethodCall("methodname1"))
+
+class Genome():
+    def __init__(self, class_name, *args, **kwargs):
+        self.class_name = class_name
+        self.init_value = (args, kwargs)
+        self.method_call_lst:list[MethodCall] = []
+    def add_methodcall(self, methodcall:MethodCall):
+        self.method_call_lst.add(methodcall)
+
+
+'''def RandomMethodCall(Class:ClassScanner, method_name:str):
+    method_args = Class.methods[method_name]
+    args = []
+    for arg_name, arg_type in method_args:
+        args.add(getattr(RandomObject, f"rand_{arg_type}")())
+    return MethodCall(method_name, args)'''
+
+m = MethodCall("method1", 4, 5, val=5)
+print(m.call_str)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Rewrites programs.')
