@@ -1,7 +1,9 @@
 import ast
 import sys
 import argparse
-
+import random
+import secrets
+import string
 # 1. scan - attribute, method 찾는거
 # 2. attribute init 함수
 # 3. method 부르는 순서
@@ -79,6 +81,17 @@ class Genome():
     def add_methodcall(self, methodcall:MethodCall):
         self.method_call_lst.add(methodcall)
 
+class RandomObject():
+    def rand_int():
+        return random.randint(-sys.maxsize - 1, sys.maxsize)
+    def rand_float():
+        return random.uniform(-sys.maxsize - 1, sys.maxsize)
+    def rand_str():
+        strlen = random.randint(1, 100)
+        return ''.join(secrets.choice(string.ascii_letters, string.digits) for i in range(strlen))
+    def rand_bool():
+        return bool(random.randint(0, 1))
+    # def rand_array():
 
 '''def RandomMethodCall(Class:ClassScanner, method_name:str):
     method_args = Class.methods[method_name]
