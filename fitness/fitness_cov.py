@@ -14,7 +14,7 @@ def get_coverage () -> dict:
     # are there something in windows like /tmp that is not ./tmp ???
     os.chdir(helper.TMP_DIR)
     
-    sp.run("coverage run --branch -m pytest ", shell=True, check=True, capture_output=True)
+    sp.run(f"coverage run --branch -m pytest {helper.TEST_FILENAME}", shell=True, check=True, capture_output=True)
     sp.run("coverage json --pretty-print -o cov.json", shell=True, check=True, capture_output=True)
 
     # get result
