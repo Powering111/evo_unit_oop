@@ -36,8 +36,8 @@ def parse_coverage (cov) :
 def coverage_score (): 
     c = parse_coverage(get_coverage())
 
-    stmt_cov = c[0][0] / c[0][1] if c[0][1] != 0 else 0
-    branch_cov = c[1][0] / c[1][1] if c[1][1] != 0 else 0
+    stmt_cov = c[0][0] / c[0][1] if c[0][1] != 0 else 1
+    branch_cov = c[1][0] / c[1][1] if c[1][1] != 0 else 1
 
     return (stmt_cov + branch_cov)
 

@@ -25,14 +25,7 @@ def test_dummy ():
     with open("testcases/dummy_test.py") as f:
         test_suite = f.read()
 
-    helper.write_target(target_code, test_suite)
-
-    # test_rewrite_target()
-    # test_fitness_cov()
-    # test_fitness_mut()
-    # print("Dummy File Tested")
-
-    print(combine.fitness_score())
+    print(combine.fitness_score(target_code, test_suite))
 
 
 if __name__ == "__main__" :
