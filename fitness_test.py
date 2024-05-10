@@ -9,7 +9,8 @@ def test_fitness_cov () :
 def test_fitness_mut () :
     r = fitness_mut.get_mutation()
     result = fitness_mut.parse_mutation(r)
-    assert result == (12, 12)
+    assert result[0] == 12
+    assert result[1] == 12
     print("Mutation tested")
 
 def test_rewrite_target (): 
@@ -32,7 +33,7 @@ def test_dummy ():
     test_fitness_mut()
     print("Dummy File Tested")
 
-    print(combine.fitness_score())
+    print(f'Combined: {combine.fitness_score(target_code, test_suite)}')
 
 
 if __name__ == "__main__" :

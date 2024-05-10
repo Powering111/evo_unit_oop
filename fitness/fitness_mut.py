@@ -20,14 +20,10 @@ def parse_mutation (response) :
 
     if len(runtime) == 1: 
         runtime = runtime[0].split()[-1]
-        print(runtime)
-        hour, minute, rest = runtime.split(':')
-        print(hour, minute, rest)
-        second, milli = rest.split('.')
-        runtime = int(hour) * 3600 + int(minute) * 60 + int(second) + int(milli)/1000
+        hour, minute, second = runtime.split(':')
+        runtime = int(hour) * 3600 + int(minute) * 60 + float(second)
     else: 
         runtime = None
-
 
     return (int(detected[0].split()[-1]), int(total_run[0].split()[-1]), runtime)
 
