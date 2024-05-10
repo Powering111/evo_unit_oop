@@ -5,9 +5,9 @@ from .settings import *
 
 def write_target (target_code: str, test_suite: str) : 
     os.chdir(TMP_DIR)
-    with open ('target.py', 'w') as f: 
+    with open (TARGET_FILENAME, 'w') as f: 
         f.write(target_code) 
-    with open('test_target.py', 'w') as f:
+    with open(TEST_FILENAME, 'w') as f:
         f.write(test_suite)
 
 def walk(node, mutator, *args):
@@ -30,7 +30,7 @@ def make_testsuite () :
 
     os.chdir(TMP_DIR)
 
-    lines = open('test_target.py').readlines()
+    lines = open(TEST_FILENAME).readlines()
     root = ast.parse('\n'.join(lines))
 
     def instrument (node): 
@@ -70,11 +70,11 @@ def make_testsuite () :
         node.test.comparators[0] = ast.Constant(result)
         return node
 
-    lines = open('test_target.py').readlines()
+    lines = open(TEST_FILENAME).readlines()
     root = ast.parse('\n'.join(lines))
     root.body = walk(root.body, patch_result, assert_lines)             # type: ignore
 
-    with open ('test_target.py', 'w') as f: 
+    with open (TEST_FILENAME, 'w') as f: 
         f.write(ast.unparse(root))
 
 if __name__ == "__main__" :

@@ -6,3 +6,5 @@ LOGGER_NAME = "log_" + str(uuid.uuid4().hex)[:5]
 ASSERT_STR = "assert_" + str(uuid.uuid4().hex)[:5]
 
 TMP_DIR = '/tmp/oop_test_gen'
+TARGET_FILENAME = '/tmp/oop_test_gen/target.py'
+TEST_FILENAME = '/tmp/oop_test_gen/test_target.py'

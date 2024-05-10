@@ -4,8 +4,8 @@ from . import helper
 
 def get_mutation ():
     # run mutatest
-    os.chdir('/tmp')
-    result = sp.run("mutatest -s . -t pytest", shell=True, check=True, capture_output=True)
+    os.chdir(helper.TMP_DIR)
+    result = sp.run(f"mutatest -s ./target.py -t 'pytest {helper.TEST_FILENAME}'", shell=True, check=True, capture_output=True)
     return result.stdout.decode()
 
 def parse_mutation (response) :
