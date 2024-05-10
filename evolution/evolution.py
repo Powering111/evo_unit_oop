@@ -1,6 +1,9 @@
 import ast
 import sys
 import argparse
+import random
+import secrets
+import string
 
 # 1. scan - attribute, method 찾는거
 # 2. attribute init 함수
@@ -79,7 +82,20 @@ class MethodCall():
         for key, val in self.kwargs.items():
             arg_str += f"{key}={val}, "
         return f".{self.method_name}({arg_str})"
-    
+
+class RandomObject():
+    def rand_int():
+        return random.randint(-sys.maxsize - 1, sys.maxsize)
+    def rand_float():
+        return random.uniform(-sys.maxsize - 1, sys.maxsize)
+    def rand_str():
+        strlen = random.randint(1, 100)
+        return ''.join(secrets.choice(string.ascii_letters, string.digits) for i in range(strlen))
+    def rand_bool():
+        return bool(random.randint(0, 1))
+    # def rand_array():
+
+
 gene1 = Genome("class1", arg1, arg2)
 gene1.add_methodcall(MethodCall("methodname1"))
 
