@@ -58,7 +58,30 @@ class ClassScanner():
         print(self.attributes)
         print(self.methods)
     
-
+class Genome():
+    def __init__(self, class_name, *args, **kwargs):
+        self.class_name = class_name
+        self.init_value = (args, kwargs)
+        self.method_call_lst:list[MethodCall] = []
+    def add_methodcall(self, methodcall:MethodCall):
+        self.method_call_lst.add(methodcall)
+    
+    
+class MethodCall():
+    def __init__(self, method_name, *args, **kwargs):
+        self.method_name = method_name
+        self.args = args
+        self.kwargs = kwargs
+    def call_str(self):
+        arg_str = ""
+        for arg in self.args:
+            arg_str += f"{arg}, "
+        for key, val in self.kwargs.items():
+            arg_str += f"{key}={val}, "
+        return f".{self.method_name}({arg_str})"
+    
+gene1 = Genome("class1", arg1, arg2)
+gene1.add_methodcall(MethodCall("methodname1"))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Rewrites programs.')
