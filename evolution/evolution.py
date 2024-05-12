@@ -5,13 +5,13 @@ import random
 import secrets
 import string
 import importlib
-# 1. scan - attribute, method 찾는거
-# 2. attribute init 함수
-# 3. method 부르는 순서
-# 6. 새 generation 만드는 함수
-# 4. input reproduce하는 함수
-# 5. input mutation 함수
-# 7. generation끼리 비교-> 선택
+# 1. scanner - Find attribute, method
+# 2. function - attribute init
+# 3. method call order
+# 6. function - Create new generation
+# 4. function - reproduce input reproduce
+# 5. function - input mutation 
+# 7. Compare between generations -> select
 
 class ClassFinder(ast.NodeVisitor):
     def __init__(self):
