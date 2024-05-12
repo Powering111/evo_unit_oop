@@ -5,6 +5,7 @@ import random
 import secrets
 import string
 import importlib
+
 # 1. scanner - Find attribute, method
 # 2. function - attribute init
 # 3. method call order
@@ -13,9 +14,10 @@ import importlib
 # 5. function - input mutation 
 # 7. Compare between generations -> select
 
+# Find class and execute scanner
 class ClassFinder(ast.NodeVisitor):
     def __init__(self):
-        self.classList = []
+        self.classList = [] # list of ClassScanner
         
     def visit_ClassDef(self, node):
         newClass = ClassScanner().visit(node)
@@ -27,11 +29,12 @@ class ClassFinder(ast.NodeVisitor):
         for cls in self.classList:
             cls.report()
         
+# Get class attributes and methods
 class ClassScanner():
     def __init__(self):
         self.name = ""
-        self.attributes = dict() # key:attribute_name, value: type
-        self.methods = dict() # key:method_name, value:dictionary of arguments
+        self.attributes = dict() # dict[attribute name, attribute type]
+        self.methods = dict() # dict[method name, dict[arg name, arg type]]
 
     def visit(self, node): 
         self.name = node.name
@@ -39,11 +42,12 @@ class ClassScanner():
             if isinstance(fundef, ast.FunctionDef):
                 if fundef.name == '__init__':
                     self.visit_init(fundef)
-                self.visit_method(fundef)
+                else:
+                    self.visit_method(fundef)
         return self
     
     def visit_init(self, node):
-        argdict = dict() # arg name - arg type
+        argdict = dict() # dict[arg name, arg type]
         for x in node.args.args[1:]:
             argdict[x.arg] = x.annotation.id
         for e in node.body:
@@ -66,27 +70,31 @@ class ClassScanner():
         print(self.attributes)
         print(self.methods)
 
+# method call code string 
 class MethodCall():
     def __init__(self, method_name, *args, **kwargs):
         self.method_name = method_name
         self.args = args
         self.kwargs = kwargs
     def call_str(self):
-        arg_str = ""
+        arg_list = []
         for arg in self.args:
-            arg_str += f"{arg}, "
+            arg_list.append(str(arg))
         for key, val in self.kwargs.items():
-            arg_str += f"{key}={val}, "
-        return f".{self.method_name}({arg_str})"
+            arg_list.append(f"{key}={val}")
+        return f".{self.method_name}({', '.join(arg_list)})"
 
+# Test suite for a class
 class Genome():
     def __init__(self, class_name, *args, **kwargs):
         self.class_name = class_name
-        self.init_value = (args, kwargs)
+        self.init_args = args
+        self.init_kwargs = kwargs
         self.method_call_lst:list[MethodCall] = []
     def add_methodcall(self, methodcall:MethodCall):
-        self.method_call_lst.add(methodcall)
+        self.method_call_lst.append(methodcall)
 
+# Random object generator
 class RandomObject():
     def rand_int():
         return random.randint(-sys.maxsize - 1, sys.maxsize)
@@ -98,33 +106,60 @@ class RandomObject():
     def rand_bool():
         return bool(random.randint(0, 1))
 
-
+# Random sequence generator
 def RandomSequence(maxnum):
     ret = [random.randint(1, maxnum)]
     while True:
-        if random.randint(0, 1):
+        if random.randint(0, 1): # increase length by 50% chance
             ret.append(random.randint(1, maxnum))
         else:
             break
     return ret
     
+# Generate random values for class attributes
 def RandomInit(Class:ClassScanner):
     attrs = []
-    for attr_name, attr_type in Class.attributes:
-        attrs.add(getattr(RandomObject, f"rand_{attr_type}")())
-    classObject = importlib.import_module(Class.name)
-    initializer = getattr(classObject, "__init__")
-    return initializer(*attrs)
+    for attr_name, attr_type in Class.attributes.items():
+        attrs.append(getattr(RandomObject, f"rand_{attr_type}")())
+    return attrs
+    # classObject = importlib.import_module(Class.name)
+    # initializer = getattr(classObject, "__init__")
+    # return initializer(*attrs)
 
+# Generate MethodCall object with random values
 def RandomMethodCall(Class:ClassScanner, method_name:str):
     method_args = Class.methods[method_name]
     args = []
-    for arg_name, arg_type in method_args:
-        args.add(getattr(RandomObject, f"rand_{arg_type}")())
+    for arg_name, arg_type in method_args.items():
+        args.append(getattr(RandomObject, f"rand_{arg_type}")())
     return MethodCall(method_name, *args)
 
-m = MethodCall("method1", 4, 5, val=5)
-print(m.call_str)
+def generateGenomeList(classList):
+    genomeList = []
+    for classObj in classList:
+        genome = Genome(classObj.name, *RandomInit(classObj))
+        for methodName in classObj.methods.keys():
+            genome.add_methodcall(RandomMethodCall(classObj, methodName))
+        genomeList.append(genome)
+    return genomeList
+
+def buildTestFile(targetName, genomeList):    
+    # Create Test file
+    # Run `python evolution/evolution.py -t testcases/dummy.py`
+    f = open("testcases/testsuites/"+targetName+"_test.py", "w")
+    f.write("import pytest\n\n")
+    f.write("import target\n")
+    f.write(f"from {targetName} import *\n\n")
+    f.write("def test_example():\n")
+    for i, genome in enumerate(genomeList):
+        # initialize class object
+        f.write(f"    c{i} = target.{genome.class_name}({', '.join(str(arg) for arg in genome.init_args)}) \n")
+        # call methods
+        for methodCall in genome.method_call_lst:
+            f.write(f"    c{i}{methodCall.call_str()} \n")
+
+# m = MethodCall("method1", 4, 5, val=5)
+# print(m.call_str())
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Rewrites programs.')
@@ -139,30 +174,11 @@ if __name__ == '__main__':
     lines = (open(target, "r").readlines())
     root = ast.parse("".join(lines), target)
 
-    print(ast.dump(root, include_attributes=False, indent=4))   
+    # print(ast.dump(root, include_attributes=False, indent=2))   
 
     finder = ClassFinder()
     finder.visit(root)
     finder.report()
 
-    # Create Test file
-    # Run `python evolution/evolution.py -t testcases/dummy.py`
-    f = open("testcases/testsuites/"+target[10:-3]+"_test.py", "w")
-    f.write("import pytest\n\n")
-    f.write("import target\n")
-    f.write(f"from {target[10:-3]} import *\n\n")
-    f.write("def test_example():\n")
-    for classObj in finder.classList:
-        for methodName, methodArgs in classObj.methods.items():
-            argsList = []
-            for methodArgName, methodArgType in methodArgs.items():
-                if methodArgType == "int":
-                    argsList.append("0")
-                elif methodArgType == "str":
-                    argsList.append("'a'")
-                elif methodArgType == "Self":
-                    argsList.append("c")
-            if methodName == "__init__":
-                f.write(f"    c = target.{classObj.name}({', '.join(argsList)}) \n")
-            else:
-                f.write(f"    c.{methodName}({', '.join(argsList)}) \n")
+    genomeList = generateGenomeList(finder.classList)
+    buildTestFile(target[10:-3], genomeList)

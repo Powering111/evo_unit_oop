@@ -4,7 +4,6 @@ import target
 from example import *
 
 def test_example():
-    c = target.Counter(0) 
-    c.report() 
-    c.reset() 
-    c.__add__(c) 
+    c0 = target.Counter(-2166184431931823494) 
+    c0.report() 
+    c0.reset() 
