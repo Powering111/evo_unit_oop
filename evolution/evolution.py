@@ -4,30 +4,36 @@ import argparse
 import random
 import secrets
 import string
+import importlib
 # 1. scan - attribute, method 찾는거
 # 2. attribute init 함수
 # 3. method 부르는 순서
+# 6. 새 generation 만드는 함수
 # 4. input reproduce하는 함수
 # 5. input mutation 함수
-# 6. 새 generation 만드는 함수
 # 7. generation끼리 비교-> 선택
 
 class ClassFinder(ast.NodeVisitor):
     def __init__(self):
         self.classList = []
+        
     def visit_ClassDef(self, node):
-        self.classList.append(ClassScanner().visit(node))
+        newClass = ClassScanner().visit(node)
+        self.classList.append(newClass)
+        rand_newClass = lambda : RandomInit(newClass)
+        setattr(RandomObject, f"rand_{newClass.name}", rand_newClass)
+
     def report(self):
         for cls in self.classList:
             cls.report()
-
+        
 class ClassScanner():
     def __init__(self):
         self.name = ""
         self.attributes = dict() # key:attribute_name, value: type
         self.methods = dict() # key:method_name, value:dictionary of arguments
 
-    def visit(self, node):
+    def visit(self, node): 
         self.name = node.name
         for fundef in node.body:
             if isinstance(fundef, ast.FunctionDef):
@@ -91,14 +97,31 @@ class RandomObject():
         return ''.join(secrets.choice(string.ascii_letters, string.digits) for i in range(strlen))
     def rand_bool():
         return bool(random.randint(0, 1))
-    # def rand_array():
+
+
+def RandomSequence(maxnum):
+    ret = [random.randint(1, maxnum)]
+    while True:
+        if random.randint(0, 1):
+            ret.append(random.randint(1, maxnum))
+        else:
+            break
+    return ret
+    
+def RandomInit(Class:ClassScanner):
+    attrs = []
+    for attr_name, attr_type in Class.attributes:
+        attrs.add(getattr(RandomObject, f"rand_{attr_type}")())
+    classObject = importlib.import_module(Class.name)
+    initializer = getattr(classObject, "__init__")
+    return initializer(*attrs)
 
 def RandomMethodCall(Class:ClassScanner, method_name:str):
     method_args = Class.methods[method_name]
     args = []
     for arg_name, arg_type in method_args:
         args.add(getattr(RandomObject, f"rand_{arg_type}")())
-    return MethodCall(method_name, args)
+    return MethodCall(method_name, *args)
 
 m = MethodCall("method1", [4, 5])
 print(m.call_str)
