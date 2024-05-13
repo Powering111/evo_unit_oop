@@ -14,7 +14,7 @@ def get_coverage () -> dict:
     # are there something in windows like /tmp that is not ./tmp ???
     os.chdir(helper.TMP_DIR)
     
-    sp.run(f"coverage run --branch -m pytest {helper.TEST_FILENAME}", shell=True, check=True, capture_output=True)
+    sp.run(f"coverage run --branch -m pytest {helper.TEST_PATH}", shell=True, check=True, capture_output=True)
     sp.run("coverage json --pretty-print -o cov.json", shell=True, check=True, capture_output=True)
 
     # get result
@@ -23,7 +23,7 @@ def get_coverage () -> dict:
     result_file.close()
 
     assert ('files' in result_obj.keys())
-    target_result = [file for file in result_obj['files'] if file.split('/')[-1] == 'target.py']
+    target_result = [file for file in result_obj['files'] if file.split('/')[-1] == helper.TARGET_FILENAME]
     assert len(target_result) == 1
 
     return result_obj['files'][target_result[0]]

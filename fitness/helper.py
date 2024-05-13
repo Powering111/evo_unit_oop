@@ -5,8 +5,8 @@ import subprocess as sp
 from .settings import *
 
 def cleanup():
-    if os.path.exists(TMP_DIR) and os.path.isdir(TMP_DIR):
-        shutil.rmtree(TMP_DIR)
+    # if os.path.exists(TMP_DIR) and os.path.isdir(TMP_DIR):
+    #     shutil.rmtree(TMP_DIR)
     if not os.path.exists(TMP_DIR):
         os.mkdir(TMP_DIR)
 
@@ -32,7 +32,7 @@ def walk(node, mutator, *args):
 
     return node
 
-# This rewrite the test_target.py as a result
+# This rewrite the TEST_PATH as a result
 def make_testsuite () :
 
     os.chdir(TMP_DIR)
@@ -77,11 +77,11 @@ def make_testsuite () :
         node.test.comparators[0] = ast.Constant(result)
         return node
 
-    lines = open(TEST_FILENAME).readlines()
+    lines = open(TEST_PATH).readlines()
     root = ast.parse('\n'.join(lines))
     root.body = walk(root.body, patch_result, assert_lines)             # type: ignore
 
-    with open (TEST_FILENAME, 'w') as f: 
+    with open (TEST_PATH, 'w') as f: 
         f.write(ast.unparse(root))
 
 if __name__ == "__main__" :

@@ -1,12 +1,12 @@
 import os 
 import subprocess as sp
 from . import helper
-from datetime import time
 
 def get_mutation ():
     # run mutatest
     os.chdir(helper.TMP_DIR)
-    result = sp.run(f"mutatest -s ./target.py -t 'pytest {helper.TEST_FILENAME}'", shell=True, check=True, capture_output=True)
+    result = sp.run(f"mutatest -s ./{helper.TARGET_FILENAME} -t 'pytest {helper.TEST_PATH}' -r {helper.SEED}", 
+                    shell=True, check=True, capture_output=True)
     return result.stdout.decode()
 
 def parse_mutation (response) :

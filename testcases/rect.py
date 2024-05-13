@@ -1,7 +1,6 @@
 # Rectangle implementation for development
 # Simple control flow
 
-
 from typing_extensions import Self
 
 class InvalidArgumentException(Exception):
