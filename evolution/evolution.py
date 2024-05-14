@@ -4,8 +4,7 @@ import argparse
 import random
 import secrets
 import string
-import importlib
-
+import reproduction
 # 1. scanner - Find attribute, method
 # 2. function - attribute init
 # 3. method call order
@@ -90,9 +89,11 @@ class Genome():
         self.class_name = class_name
         self.init_args = args
         self.init_kwargs = kwargs
-        self.method_call_lst:list[MethodCall] = []
+        self.methodCall_lst:list[MethodCall] = []
+    def set_methodCall_lst(self, methodCall_lst):
+        self.methodCall_lst = methodCall_lst
     def add_methodcall(self, methodcall:MethodCall):
-        self.method_call_lst.append(methodcall)
+        self.methodCall_lst.append(methodcall)
 
 # Random object generator
 class RandomObject():
@@ -153,7 +154,7 @@ def buildTestFile(targetName, genomeList):
         # initialize class object
         f.write(f"    c{i} = target.{genome.class_name}({', '.join(str(arg) for arg in genome.init_args)}) \n")
         # call methods
-        for methodCall in genome.method_call_lst:
+        for methodCall in genome.methodCall_lst:
             f.write(f"    c{i}{methodCall.call_str()} \n")
 
 # m = MethodCall("method1", 4, 5, val=5)
@@ -173,7 +174,6 @@ if __name__ == '__main__':
     root = ast.parse("".join(lines), target)
 
     # print(ast.dump(root, include_attributes=False, indent=2))   
-    import_path = target.replace('/', '.').replace('.py', '')
     finder = ClassFinder()
     finder.visit(root)
     finder.report()
@@ -182,3 +182,5 @@ if __name__ == '__main__':
     print(x)
     genomeList = generateGenomeList(finder.classList)
     buildTestFile(target[10:-3], genomeList)
+    genomeList = reproduction.generate_newgen(genomeList)
+    buildTestFile(target[10:-3]+"newgen", genomeList)
