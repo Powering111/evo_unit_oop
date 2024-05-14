@@ -89,10 +89,8 @@ class MethodCall():
 
 # Test suite for a class
 class Genome():
-    def __init__(self, class_name, *args, **kwargs):
-        self.class_name = class_name
-        self.init_args = args
-        self.init_kwargs = kwargs
+    def __init__(self, object):
+        self.object = object
         self.method_call_lst:list[MethodCall] = []
     def add_methodcall(self, methodcall:MethodCall):
         self.method_call_lst.append(methodcall)
