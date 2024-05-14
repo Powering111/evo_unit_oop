@@ -16,12 +16,11 @@ import importlib
 
 # Find class and execute scanner
 class ClassFinder(ast.NodeVisitor):
-    def __init__(self, import_path):
+    def __init__(self):
         self.classList = [] # list of ClassScanner
-        self.import_path = import_path
         
     def visit_ClassDef(self, node):
-        newClass = ClassScanner(self.import_path).visit(node)
+        newClass = ClassScanner().visit(node)
         self.classList.append(newClass)
         rand_newClass = lambda : RandomInit(newClass)
         setattr(RandomObject, f"rand_{newClass.name}", rand_newClass)
@@ -32,15 +31,13 @@ class ClassFinder(ast.NodeVisitor):
         
 # Get class attributes and methods
 class ClassScanner():
-    def __init__(self, import_path):
+    def __init__(self):
         self.name = ""
         self.attributes = dict() # dict[attribute name, attribute type]
         self.methods = dict() # dict[method name, dict[arg name, arg type]]
-        self.object = importlib.import_module(import_path)
 
     def visit(self, node): 
         self.name = node.name
-        self.object = getattr(self.object, self.name)
         for fundef in node.body:
             if isinstance(fundef, ast.FunctionDef):
                 if fundef.name == '__init__':
@@ -89,8 +86,10 @@ class MethodCall():
 
 # Test suite for a class
 class Genome():
-    def __init__(self, object):
-        self.object = object
+    def __init__(self, class_name, *args, **kwargs):
+        self.class_name = class_name
+        self.init_args = args
+        self.init_kwargs = kwargs
         self.method_call_lst:list[MethodCall] = []
     def add_methodcall(self, methodcall:MethodCall):
         self.method_call_lst.append(methodcall)
@@ -123,7 +122,7 @@ def RandomInit(Class:ClassScanner):
     for attr_name, attr_type in Class.attributes.items():
         attrs.append(getattr(RandomObject, f"rand_{attr_type}")())
     #instance = getattr(Class.object, Class.name)
-    return Class.object(*attrs)
+    return attrs
 
 # Generate MethodCall object with random values
 def RandomMethodCall(Class:ClassScanner, method_name:str):
@@ -175,12 +174,11 @@ if __name__ == '__main__':
 
     # print(ast.dump(root, include_attributes=False, indent=2))   
     import_path = target.replace('/', '.').replace('.py', '')
-    finder = ClassFinder(import_path)
+    finder = ClassFinder()
     finder.visit(root)
     finder.report()
 
     x = RandomObject.rand_Counter()
-    print(x.value, x.value2)
-    print(RandomMethodCall(finder.classList[0], "report").call_str())
-    #genomeList = generateGenomeList(finder.classList)
-    #buildTestFile(target[10:-3], genomeList)
+    print(x)
+    genomeList = generateGenomeList(finder.classList)
+    buildTestFile(target[10:-3], genomeList)
