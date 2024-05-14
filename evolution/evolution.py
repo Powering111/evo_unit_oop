@@ -2,7 +2,6 @@ import ast
 import sys
 import argparse
 import random
-import secrets
 import string
 import reproduction
 # 1. scanner - Find attribute, method
@@ -65,9 +64,9 @@ class ClassScanner():
         self.methods[name] = argsDict      
 
     def report(self):
-        print(self.name)    
-        print(self.attributes)
-        print(self.methods)
+        print("name", self.name)    
+        print("attributes", self.attributes)
+        print("methods", self.methods)
 
 # method call code string 
 class MethodCall():
@@ -83,7 +82,7 @@ class MethodCall():
             arg_list.append(f"{key}={val}")
         return f".{self.method_name}({', '.join(arg_list)})"
 
-# Test suite for a class
+# Test case for a class
 class Genome():
     def __init__(self, class_name, *args, **kwargs):
         self.class_name = class_name
@@ -129,12 +128,14 @@ def RandomInit(Class:ClassScanner):
 # Generate MethodCall object with random values
 def RandomMethodCall(Class:ClassScanner, method_name:str):
     method_args = Class.methods[method_name]
-    args = []
+    args = list()
     for arg_name, arg_type in method_args.items():
         if arg_type == "Self":
-            args.append(getattr(RandomObject, f"rand_{Class.name}")())
+            i = random.randrange(0, 10)
+            args.append(f"obj_{Class.name}{i}")
         else:
             args.append(getattr(RandomObject, f"rand_{arg_type}")())
+    print("args", args, *args)
     return MethodCall(method_name, *args)
 
 def generateGenomeList(classList):
@@ -157,10 +158,11 @@ def buildTestFile(targetName, genomeList):
     f.write("def test_example():\n")
     for i, genome in enumerate(genomeList):
         # initialize class object
-        f.write(f"    c{i} = target.{genome.class_name}({', '.join(str(arg) for arg in genome.init_args)}) \n")
+        f.write(f"    obj_{genome.class_name}{i} = target.{genome.class_name}({', '.join(str(arg) for arg in genome.init_args)}) \n")
         # call methods
+    for i, genome in enumerate(genomeList):
         for methodCall in genome.methodCall_lst:
-            f.write(f"    c{i}{methodCall.call_str()} \n")
+            f.write(f"    obj_{genome.class_name}{i}{methodCall.call_str()} \n")
 
 # m = MethodCall("method1", 4, 5, val=5)
 # print(m.call_str())
