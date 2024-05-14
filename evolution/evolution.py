@@ -103,7 +103,7 @@ class RandomObject():
         return random.uniform(-sys.maxsize - 1, sys.maxsize)
     def rand_str():
         strlen = random.randint(1, 100)
-        return ''.join(secrets.choice(string.ascii_letters, string.digits) for i in range(strlen))
+        return ''.join(random.choice(string.ascii_letters + string.digits) for i in range(strlen))
     def rand_bool():
         return bool(random.randint(0, 1))
 
@@ -130,7 +130,8 @@ def RandomMethodCall(Class:ClassScanner, method_name:str):
     method_args = Class.methods[method_name]
     args = []
     for arg_name, arg_type in method_args.items():
-        args.append(getattr(RandomObject, f"rand_{arg_type}")())
+        if arg_type != "Self":
+            args.append(getattr(RandomObject, f"rand_{arg_type}")())
     return MethodCall(method_name, *args)
 
 def generateGenomeList(classList):
