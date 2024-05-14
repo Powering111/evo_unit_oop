@@ -136,10 +136,11 @@ def RandomMethodCall(Class:ClassScanner, method_name:str):
 def generateGenomeList(classList):
     genomeList = []
     for classObj in classList:
-        genome = Genome(classObj.name, *RandomInit(classObj))
-        for methodName in classObj.methods.keys():
-            genome.add_methodcall(RandomMethodCall(classObj, methodName))
-        genomeList.append(genome)
+        for i in range(10):
+            genome = Genome(classObj.name, *RandomInit(classObj))
+            for methodName in classObj.methods.keys():
+                genome.add_methodcall(RandomMethodCall(classObj, methodName))
+            genomeList.append(genome)
     return genomeList
 
 def buildTestFile(targetName, genomeList):    
