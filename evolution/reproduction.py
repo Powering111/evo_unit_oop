@@ -23,7 +23,9 @@ def generate_newgen(prevgen):
         newgen.append(reproduce(mom, dad))
     return newgen
 
-lst1 = [1,2,3,4,5]
-lst2=[11,12,13,14,15]
-for i in range(10):
-    print(crossover(lst1, lst2))
+def mutate_init(genome):
+    pass
+def mutate_methodCalls(genome):
+    pass
+def mutate_generation(genomeList):
+    pass

@@ -135,17 +135,16 @@ def RandomMethodCall(Class:ClassScanner, method_name:str):
     args = list()
     for arg_name, arg_type in method_args.items():
         if arg_type == "Self":
-            i = random.randrange(0, 10)
+            i = random.randrange(0, 5)
             args.append(f"obj_{Class.name}{i}")
         else:
             args.append(getattr(RandomObject, f"rand_{arg_type}")())
-    print("args", args, *args)
     return MethodCall(method_name, *args)
 
 def generateGenomeList(classList):
     genomeList = []
     for classObj in classList:
-        for i in range(10):
+        for i in range(5):
             genome = Genome(classObj.name, *RandomInit(classObj))
             for methodName in classObj.methods.keys():
                 priority = RandomObject.rand_int()
@@ -173,6 +172,26 @@ def buildTestFile(targetName, genomeList):
         f.write(f"    obj_{genome.class_name}{i}{methodCall.call_str()}")
         f.write(f" # priority: {priority}\n")
 
+def fitness(genomeList): ## not implemented yet
+    return random.randint(0,100)
+
+
+def evolve(finder:ClassFinder, threshold_score, max_generation):
+    genomeList = generateGenomeList(finder.classList)
+    prev_fitness = fitness(genomeList)
+    for i in range(max_generation):
+        print(prev_fitness)
+        if prev_fitness >= threshold_score:
+            return genomeList
+        newgenList = reproduction.generate_newgen(genomeList)
+        new_fitness = fitness(newgenList)
+        if new_fitness > prev_fitness:
+            genomeList = newgenList
+            prev_fitness = new_fitness
+    print(prev_fitness)
+    return genomeList
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Rewrites programs.')
     parser.add_argument('-t', '--target', required=True)
@@ -191,9 +210,5 @@ if __name__ == '__main__':
     finder.visit(root)
     finder.report()
 
-    x = RandomObject.rand_Counter()
-    print("x", x)
-    genomeList = generateGenomeList(finder.classList)
+    genomeList = evolve(finder, 95, 20)
     buildTestFile(target[10:-3], genomeList)
-    genomeList = reproduction.generate_newgen(genomeList)
-    buildTestFile(target[10:-3]+"newgen", genomeList)
