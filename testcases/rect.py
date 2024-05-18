@@ -1,8 +1,7 @@
 # Rectangle implementation for development
 # Simple control flow
 
-
-from typing import Self
+from typing_extensions import Self
 
 class InvalidArgumentException(Exception):
     pass

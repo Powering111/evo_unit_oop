@@ -1,60 +1,43 @@
-
-
-
 # Assuming that the format of the target class would be a file containing import statements and classes.
 # And the test suite would be a file containing just multiple functions and nothing else.
-
-# This program only works on unix-like system.
 
 import subprocess as sp
 import json
 import os
-import ast
-
-def write_target (target_code: str, test_suite: str) : 
-    with open ('target.py', 'w') as f: 
-        f.write(target_code) 
-    with open('test.py', 'w') as f:
-        f.write(test_suite)
-
+from . import helper
 
 # Given the target python class in string `target_code` and given the test-suite in string `test_suite`
 # Run the the test_suite and return the corresponding coverage object
-def get_coverage (target_code: str, test_suite_code: str) -> dict:
-    root = ast.parse(test_suite_code)
-    print(ast.dump(root,indent=2))
-
-    # slightly change code to run test functions.
-    test_functions = [] # name of the test functions
-    for elem in root.body:
-        if isinstance(elem, ast.FunctionDef):
-            test_functions.append(elem.name)
-            test_suite_code += f'\n{elem.name}()'
+def get_coverage () -> dict:
 
     # run coverage.py
-    os.chdir('tmp/')
-    write_target(target_code, test_suite_code)
+    # are there something in windows like /tmp that is not ./tmp ???
+    os.chdir(helper.TMP_DIR)
     
-    sp.run("python3.11 -m coverage run --branch test.py", shell=True, check=True)
-    sp.run("python3.11 -m coverage json --pretty-print -o cov.json", shell=True, check=True, capture_output=True)
+    sp.run(f"coverage run --branch -m pytest {helper.TEST_PATH}", shell=True, check=True, capture_output=True)
+    sp.run("coverage json --pretty-print -o cov.json", shell=True, check=True, capture_output=True)
 
     # get result
     result_file = open('cov.json', 'r')
     result_obj = json.load(result_file)
     result_file.close()
 
-    assert('files' in result_obj.keys())
-    assert('target.py' in result_obj['files'])
+    assert ('files' in result_obj.keys())
+    target_result = [file for file in result_obj['files'] if file.split('/')[-1] == helper.TARGET_FILENAME]
+    assert len(target_result) == 1
 
-    return result_obj['files']['target.py']
+    return result_obj['files'][target_result[0]]
 
+def parse_coverage (cov) :
+    stmt = (cov['summary']['covered_lines'], cov['summary']['num_statements'])
+    branch = (cov['summary']['covered_branches'], cov['summary']['num_branches'])
+    return stmt, branch
 
-if __name__ == "__main__" :
-    with open("testcases/dummy.py") as f:
-        target_code = f.read()
-    with open("testcases/dummy_test.py") as f:
-        test_suite = f.read()
+def coverage_score (): 
+    c = parse_coverage(get_coverage())
 
-    c = get_coverage(target_code, test_suite)
-    print(c)
+    stmt_cov = c[0][0] / c[0][1] if c[0][1] != 0 else 1
+    branch_cov = c[1][0] / c[1][1] if c[1][1] != 0 else 1
+
+    return (stmt_cov + branch_cov)
 
