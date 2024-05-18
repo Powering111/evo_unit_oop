@@ -12,7 +12,7 @@ import reproduction
 # 5. function - input mutation 
 # 7. Compare between generations -> select
 
-# Find class and execute scanner
+# Find class in target file and execute scanner
 class ClassFinder(ast.NodeVisitor):
     def __init__(self):
         self.classList = [] # list of ClassScanner
@@ -88,11 +88,11 @@ class Genome():
         self.class_name = class_name
         self.init_args = args
         self.init_kwargs = kwargs
-        self.methodCall_lst:list[MethodCall] = []
+        self.methodCall_lst:list[(MethodCall, int)] = []
     def set_methodCall_lst(self, methodCall_lst):
         self.methodCall_lst = methodCall_lst
-    def add_methodcall(self, methodcall:MethodCall):
-        self.methodCall_lst.append(methodcall)
+    def add_methodcall(self, methodcall:MethodCall, priority:int):
+        self.methodCall_lst.append((methodcall, priority))
 
 # Random object generator
 class RandomObject():
@@ -101,9 +101,13 @@ class RandomObject():
     def rand_float():
         return random.uniform(-sys.maxsize - 1, sys.maxsize)
     def rand_str():
-        strlen = random.randint(1, 100)
-        returnstr = "".join(random.choice(string.ascii_letters + string.digits) for i in range(strlen))
-        return f'"{returnstr}"'
+        return_str = random.choice(string.ascii_letters + string.digits)
+        for i in range(100):
+            if random.randint(0, 10)<9:
+                return_str += random.choice(string.ascii_letters + string.digits)
+            else:
+                break
+        return f'"{return_str}"'
     def rand_bool():
         return bool(random.randint(0, 1))
 
@@ -131,20 +135,20 @@ def RandomMethodCall(Class:ClassScanner, method_name:str):
     args = list()
     for arg_name, arg_type in method_args.items():
         if arg_type == "Self":
-            i = random.randrange(0, 10)
+            i = random.randrange(0, 5)
             args.append(f"obj_{Class.name}{i}")
         else:
             args.append(getattr(RandomObject, f"rand_{arg_type}")())
-    print("args", args, *args)
     return MethodCall(method_name, *args)
 
 def generateGenomeList(classList):
     genomeList = []
     for classObj in classList:
-        for i in range(10):
+        for i in range(5):
             genome = Genome(classObj.name, *RandomInit(classObj))
             for methodName in classObj.methods.keys():
-                genome.add_methodcall(RandomMethodCall(classObj, methodName))
+                priority = RandomObject.rand_int()
+                genome.add_methodcall(RandomMethodCall(classObj, methodName), priority)
             genomeList.append(genome)
     return genomeList
 
@@ -156,16 +160,37 @@ def buildTestFile(targetName, genomeList):
     f.write("import target\n")
     f.write(f"from {targetName} import *\n\n")
     f.write("def test_example():\n")
+    all_methodCalls = []
+    # write initializer in test_file and collect method lists
     for i, genome in enumerate(genomeList):
-        # initialize class object
         f.write(f"    obj_{genome.class_name}{i} = target.{genome.class_name}({', '.join(str(arg) for arg in genome.init_args)}) \n")
-        # call methods
-    for i, genome in enumerate(genomeList):
-        for methodCall in genome.methodCall_lst:
-            f.write(f"    obj_{genome.class_name}{i}{methodCall.call_str()} \n")
+        for methodCall, priority in genome.methodCall_lst:
+            all_methodCalls.append((i, methodCall, priority))
+    all_methodCalls.sort(key=lambda tup: tup[2])
+    # write method calls in test_file
+    for i, methodCall, priority in all_methodCalls:
+        f.write(f"    obj_{genome.class_name}{i}{methodCall.call_str()}")
+        f.write(f" # priority: {priority}\n")
 
-# m = MethodCall("method1", 4, 5, val=5)
-# print(m.call_str())
+def fitness(genomeList): ## not implemented yet
+    return random.randint(0,100)
+
+
+def evolve(finder:ClassFinder, threshold_score, max_generation):
+    genomeList = generateGenomeList(finder.classList)
+    prev_fitness = fitness(genomeList)
+    for i in range(max_generation):
+        print(prev_fitness)
+        if prev_fitness >= threshold_score:
+            return genomeList
+        newgenList = reproduction.generate_newgen(genomeList)
+        new_fitness = fitness(newgenList)
+        if new_fitness > prev_fitness:
+            genomeList = newgenList
+            prev_fitness = new_fitness
+    print(prev_fitness)
+    return genomeList
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Rewrites programs.')
@@ -185,9 +210,5 @@ if __name__ == '__main__':
     finder.visit(root)
     finder.report()
 
-    x = RandomObject.rand_Counter()
-    print("x", x)
-    genomeList = generateGenomeList(finder.classList)
+    genomeList = evolve(finder, 95, 20)
     buildTestFile(target[10:-3], genomeList)
-    genomeList = reproduction.generate_newgen(genomeList)
-    buildTestFile(target[10:-3]+"newgen", genomeList)
