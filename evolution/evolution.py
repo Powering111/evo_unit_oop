@@ -1,41 +1,51 @@
 import ast
 import sys
 import argparse
+import random
+import string
+import reproduction
+# 1. scanner - Find attribute, method
+# 2. function - attribute init
+# 3. method call order
+# 6. function - Create new generation
+# 4. function - reproduce input reproduce
+# 5. function - input mutation 
+# 7. Compare between generations -> select
 
-# 1. scan - attribute, method 찾는거
-# 2. attribute init 함수
-# 3. method 부르는 순서
-# 4. input reproduce하는 함수
-# 5. input mutation 함수
-# 6. 새 generation 만드는 함수
-# 7. generation끼리 비교-> 선택
-
+# Find class and execute scanner
 class ClassFinder(ast.NodeVisitor):
     def __init__(self):
-        self.classList = []
+        self.classList = [] # list of ClassScanner
+        
     def visit_ClassDef(self, node):
-        self.classList.append(ClassScanner().visit(node))
+        newClass = ClassScanner().visit(node)
+        self.classList.append(newClass)
+        rand_newClass = lambda : RandomInit(newClass)
+        setattr(RandomObject, f"rand_{newClass.name}", rand_newClass)
+
     def report(self):
         for cls in self.classList:
             cls.report()
-
+        
+# Get class attributes and methods
 class ClassScanner():
     def __init__(self):
         self.name = ""
-        self.attributes = dict() # attribute name - type
-        self.methods = dict() # method name - dictionary of arguments
+        self.attributes = dict() # dict[attribute name, attribute type]
+        self.methods = dict() # dict[method name, dict[arg name, arg type]]
 
-    def visit(self, node):
+    def visit(self, node): 
         self.name = node.name
         for fundef in node.body:
             if isinstance(fundef, ast.FunctionDef):
                 if fundef.name == '__init__':
                     self.visit_init(fundef)
-                self.visit_method(fundef)
+                else:
+                    self.visit_method(fundef)
         return self
     
     def visit_init(self, node):
-        argdict = dict() # arg name - arg type
+        argdict = dict() # dict[arg name, arg type]
         for x in node.args.args[1:]:
             argdict[x.arg] = x.annotation.id
         for e in node.body:
@@ -54,11 +64,108 @@ class ClassScanner():
         self.methods[name] = argsDict      
 
     def report(self):
-        print(self.name)    
-        print(self.attributes)
-        print(self.methods)
-    
+        print("name", self.name)    
+        print("attributes", self.attributes)
+        print("methods", self.methods)
 
+# method call code string 
+class MethodCall():
+    def __init__(self, method_name, *args, **kwargs):
+        self.method_name = method_name
+        self.args = args
+        self.kwargs = kwargs
+    def call_str(self):
+        arg_list = []
+        for arg in self.args:
+            arg_list.append(str(arg))
+        for key, val in self.kwargs.items():
+            arg_list.append(f"{key}={val}")
+        return f".{self.method_name}({', '.join(arg_list)})"
+
+# Test case for a class
+class Genome():
+    def __init__(self, class_name, *args, **kwargs):
+        self.class_name = class_name
+        self.init_args = args
+        self.init_kwargs = kwargs
+        self.methodCall_lst:list[MethodCall] = []
+    def set_methodCall_lst(self, methodCall_lst):
+        self.methodCall_lst = methodCall_lst
+    def add_methodcall(self, methodcall:MethodCall):
+        self.methodCall_lst.append(methodcall)
+
+# Random object generator
+class RandomObject():
+    def rand_int():
+        return random.randint(-sys.maxsize - 1, sys.maxsize)
+    def rand_float():
+        return random.uniform(-sys.maxsize - 1, sys.maxsize)
+    def rand_str():
+        strlen = random.randint(1, 100)
+        returnstr = "".join(random.choice(string.ascii_letters + string.digits) for i in range(strlen))
+        return f'"{returnstr}"'
+    def rand_bool():
+        return bool(random.randint(0, 1))
+
+# Random sequence generator
+def RandomSequence(maxnum):
+    ret = [random.randint(1, maxnum)]
+    while True:
+        if random.randint(0, 1): # increase length by 50% chance
+            ret.append(random.randint(1, maxnum))
+        else:
+            break
+    return ret
+    
+# Generate random values for class attributes
+def RandomInit(Class:ClassScanner):
+    attrs = []
+    for attr_name, attr_type in Class.attributes.items():
+        attrs.append(getattr(RandomObject, f"rand_{attr_type}")())
+    #instance = getattr(Class.object, Class.name)
+    return attrs
+
+# Generate MethodCall object with random values
+def RandomMethodCall(Class:ClassScanner, method_name:str):
+    method_args = Class.methods[method_name]
+    args = list()
+    for arg_name, arg_type in method_args.items():
+        if arg_type == "Self":
+            i = random.randrange(0, 10)
+            args.append(f"obj_{Class.name}{i}")
+        else:
+            args.append(getattr(RandomObject, f"rand_{arg_type}")())
+    print("args", args, *args)
+    return MethodCall(method_name, *args)
+
+def generateGenomeList(classList):
+    genomeList = []
+    for classObj in classList:
+        for i in range(10):
+            genome = Genome(classObj.name, *RandomInit(classObj))
+            for methodName in classObj.methods.keys():
+                genome.add_methodcall(RandomMethodCall(classObj, methodName))
+            genomeList.append(genome)
+    return genomeList
+
+def buildTestFile(targetName, genomeList):    
+    # Create Test file
+    # Run `python evolution/evolution.py -t testcases/dummy.py`
+    f = open("testcases/testsuites/"+targetName+"_test.py", "w")
+    f.write("import pytest\n\n")
+    f.write("import target\n")
+    f.write(f"from {targetName} import *\n\n")
+    f.write("def test_example():\n")
+    for i, genome in enumerate(genomeList):
+        # initialize class object
+        f.write(f"    obj_{genome.class_name}{i} = target.{genome.class_name}({', '.join(str(arg) for arg in genome.init_args)}) \n")
+        # call methods
+    for i, genome in enumerate(genomeList):
+        for methodCall in genome.methodCall_lst:
+            f.write(f"    obj_{genome.class_name}{i}{methodCall.call_str()} \n")
+
+# m = MethodCall("method1", 4, 5, val=5)
+# print(m.call_str())
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Rewrites programs.')
@@ -73,8 +180,14 @@ if __name__ == '__main__':
     lines = (open(target, "r").readlines())
     root = ast.parse("".join(lines), target)
 
-    print(ast.dump(root, include_attributes=False, indent=4))   
-
+    # print(ast.dump(root, include_attributes=False, indent=2))   
     finder = ClassFinder()
     finder.visit(root)
     finder.report()
+
+    x = RandomObject.rand_Counter()
+    print("x", x)
+    genomeList = generateGenomeList(finder.classList)
+    buildTestFile(target[10:-3], genomeList)
+    genomeList = reproduction.generate_newgen(genomeList)
+    buildTestFile(target[10:-3]+"newgen", genomeList)
