@@ -1,6 +1,5 @@
-from evolution import Genome
-from evolution import MethodCall
-import random
+import random 
+import sys
 
 def mix_init(genome1, genome2):
     return genome1 if bool(random.getrandbits(1)) else genome2
@@ -23,9 +22,18 @@ def generate_newgen(prevgen):
         newgen.append(reproduce(mom, dad))
     return newgen
 
-def mutate_init(genome):
-    pass
-def mutate_methodCalls(genome):
-    pass
-def mutate_generation(genomeList):
-    pass
+# MUTATE HOW 20% of the population
+MUTATION_PROB = 0.2
+# EACH MUTATION WILL YIELD DIFFERENCE OF 10%
+MUTATION_SEVERITY = 0.1
+
+def mutate(genomeList):
+    for i, _ in enumerate(genomeList) :
+        if random.random() < MUTATION_PROB :
+            mutate_methodCall(genomeList[i].methodCall_lst)
+
+def mutate_methodCall (methodCalls) : 
+    for i, mc in enumerate(methodCalls): 
+        if random.random() < MUTATION_SEVERITY :
+            priority = random.randint(-sys.maxsize - 1, sys.maxsize)
+            methodCalls[i] = (mc[0], priority)

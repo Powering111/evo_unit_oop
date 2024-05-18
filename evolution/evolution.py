@@ -82,17 +82,26 @@ class MethodCall():
             arg_list.append(f"{key}={val}")
         return f".{self.method_name}({', '.join(arg_list)})"
 
+    __repr__ = call_str
+
 # Test case for a class
 class Genome():
     def __init__(self, class_name, *args, **kwargs):
         self.class_name = class_name
         self.init_args = args
         self.init_kwargs = kwargs
-        self.methodCall_lst:list[(MethodCall, int)] = []
+        self.methodCall_lst:list[tuple[MethodCall, int]] = []
+
     def set_methodCall_lst(self, methodCall_lst):
         self.methodCall_lst = methodCall_lst
+
     def add_methodcall(self, methodcall:MethodCall, priority:int):
         self.methodCall_lst.append((methodcall, priority))
+
+    def __repr__ (self) :
+        meta = f"genome for {self.class_name}: a={self.init_args} kw={self.init_kwargs}" 
+        gene = "\n\t".join(str(mc) for mc in self.methodCall_lst)
+        return meta + '\n\t' + gene 
 
 # Random object generator
 class RandomObject():
@@ -102,7 +111,7 @@ class RandomObject():
         return random.uniform(-sys.maxsize - 1, sys.maxsize)
     def rand_str():
         return_str = random.choice(string.ascii_letters + string.digits)
-        for i in range(100):
+        for _ in range(100):
             if random.randint(0, 10)<9:
                 return_str += random.choice(string.ascii_letters + string.digits)
             else:
@@ -179,11 +188,12 @@ def fitness(genomeList): ## not implemented yet
 def evolve(finder:ClassFinder, threshold_score, max_generation):
     genomeList = generateGenomeList(finder.classList)
     prev_fitness = fitness(genomeList)
-    for i in range(max_generation):
+    for _ in range(max_generation):
         print(prev_fitness)
         if prev_fitness >= threshold_score:
             return genomeList
         newgenList = reproduction.generate_newgen(genomeList)
+        reproduction.mutate(newgenList)
         new_fitness = fitness(newgenList)
         if new_fitness > prev_fitness:
             genomeList = newgenList
