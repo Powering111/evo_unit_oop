@@ -29,4 +29,4 @@ def parse_mutation (response) :
 
 def mutation_score (): 
     m = parse_mutation(get_mutation())
-    return (m[0] / m[1] if m[1] != 0 else 0), m[2]
+    return (m[0] / m[1] if m[1] != 0 else 1), m[2]

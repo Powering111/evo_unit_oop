@@ -5,6 +5,7 @@ import subprocess as sp
 from .settings import *
 
 def cleanup():
+    # TODO: uncomment this
     # if os.path.exists(TMP_DIR) and os.path.isdir(TMP_DIR):
     #     shutil.rmtree(TMP_DIR)
     if not os.path.exists(TMP_DIR):
