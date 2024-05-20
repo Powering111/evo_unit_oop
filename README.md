@@ -10,12 +10,16 @@ Automated unit test generation for python classes, using evolutionary programmin
 - `main.py` to be realized and format later on :)
 
 ## Execution
-Python 3.11 is required to run this application. 
-
-To use Self type annotation, we need python>3.11.
+Python 3.10 is required to run this application. 
 
 
 To install dependencies, run
 ```
-python3.11 -m pip install -r requirements
+pip install -r requirements
 ```
+
+To test evolutionary, run following(to be changed):
+```
+python evolution/evolution.py -t testcases/dummy.py
+```
+
