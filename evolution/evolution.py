@@ -1,5 +1,6 @@
 import ast
 import sys
+import pathlib
 import argparse
 import random
 import string
@@ -9,32 +10,34 @@ import reproduction
 # 3. method call order
 # 6. function - Create new generation
 # 4. function - reproduce input reproduce
-# 5. function - input mutation 
+# 5. function - input mutation
 # 7. Compare between generations -> select
+
 
 # Find class in target file and execute scanner
 class ClassFinder(ast.NodeVisitor):
     def __init__(self):
-        self.classList = [] # list of ClassScanner
-        
+        self.classList: list[ClassScanner] = []
+
     def visit_ClassDef(self, node):
         newClass = ClassScanner().visit(node)
         self.classList.append(newClass)
-        rand_newClass = lambda : RandomInit(newClass)
+        def rand_newClass(): return RandomInit(newClass)
         setattr(RandomObject, f"rand_{newClass.name}", rand_newClass)
 
     def report(self):
         for cls in self.classList:
             cls.report()
-        
+
+
 # Get class attributes and methods
 class ClassScanner():
     def __init__(self):
-        self.name = ""
-        self.attributes = dict() # dict[attribute name, attribute type]
-        self.methods = dict() # dict[method name, dict[arg name, arg type]]
+        self.name: str = ""
+        self.attributes: dict[str,str] = dict()  # dict[attribute name, attribute type]
+        self.methods: dict[str,tuple[dict[str,str],str]] = dict()  # dict[method name, (dict[arg name, arg type],return type)]
 
-    def visit(self, node): 
+    def visit(self, node):
         self.name = node.name
         for fundef in node.body:
             if isinstance(fundef, ast.FunctionDef):
@@ -43,10 +46,11 @@ class ClassScanner():
                 else:
                     self.visit_method(fundef)
         return self
-    
+
     def visit_init(self, node):
-        argdict = dict() # dict[arg name, arg type]
+        argdict: dict[str,str] = dict()  # dict[arg name, arg type]
         for x in node.args.args[1:]:
+            assert x.annotation is not None
             argdict[x.arg] = x.annotation.id
         for e in node.body:
             if isinstance(e, ast.Assign):
@@ -55,25 +59,48 @@ class ClassScanner():
                     self.attributes[attr_name] = argdict[e.value.id]
                 elif isinstance(e.value, ast.Call):
                     self.attributes[attr_name] = "functioncall"
-                
+
     def visit_method(self, node):
         name = node.name
         argsDict = dict()
         for x in node.args.args[1:]:
             argsDict[x.arg] = x.annotation.id
-        self.methods[name] = argsDict      
+        
+        # return type
+        return_type='None'
+        if node.returns is not None:
+            return_type=node.returns.id
+        self.methods[name] = (argsDict,return_type)
 
     def report(self):
-        print("name", self.name)    
-        print("attributes", self.attributes)
-        print("methods", self.methods)
+        print(f"class {self.name}:\n  attributes")
+        if len(self.attributes)==0:
+            print("    empty")
+        else:
+            for (name,type) in self.attributes.items():
+                print(f"    {name}: {type}")
 
-# method call code string 
+        print(f"  methods")
+        if len(self.methods)==0:
+            print("    empty")
+        else:
+            for (name,(arg_type,return_type)) in self.methods.items():
+                arg_str = ', '.join(['self']+[f'{name}: {type}' for (name,type) in arg_type.items()])
+                print(f"    def {name}({arg_str}) -> {return_type}")
+
+    def is_empty(self) -> bool:
+        if len(self.attributes)==0 and len(self.methods)==0:
+            return True
+        else:
+            return False
+
+# method call code string
 class MethodCall():
     def __init__(self, method_name, *args, **kwargs):
         self.method_name = method_name
         self.args = args
         self.kwargs = kwargs
+
     def call_str(self):
         arg_list = []
         for arg in self.args:
@@ -84,63 +111,72 @@ class MethodCall():
 
     __repr__ = call_str
 
+
 # Test case for a class
 class Genome():
     def __init__(self, class_name, *args, **kwargs):
         self.class_name = class_name
         self.init_args = args
         self.init_kwargs = kwargs
-        self.methodCall_lst:list[tuple[MethodCall, int]] = []
+        self.methodCall_lst: list[tuple[MethodCall, int]] = []
 
     def set_methodCall_lst(self, methodCall_lst):
         self.methodCall_lst = methodCall_lst
 
-    def add_methodcall(self, methodcall:MethodCall, priority:int):
+    def add_methodcall(self, methodcall: MethodCall, priority: int):
         self.methodCall_lst.append((methodcall, priority))
 
-    def __repr__ (self) :
-        meta = f"genome for {self.class_name}: a={self.init_args} kw={self.init_kwargs}" 
+    def __repr__(self):
+        meta = f"genome for {self.class_name}: a={self.init_args} kw={self.init_kwargs}"
         gene = "\n\t".join(str(mc) for mc in self.methodCall_lst)
-        return meta + '\n\t' + gene 
+        return meta + '\n\t' + gene
+
 
 # Random object generator
 class RandomObject():
     def rand_int():
         return random.randint(-sys.maxsize - 1, sys.maxsize)
+
     def rand_float():
         return random.uniform(-sys.maxsize - 1, sys.maxsize)
+
     def rand_str():
         return_str = random.choice(string.ascii_letters + string.digits)
         for _ in range(100):
-            if random.randint(0, 10)<9:
-                return_str += random.choice(string.ascii_letters + string.digits)
+            if random.randint(0, 10) < 9:
+                return_str += random.choice(string.ascii_letters +
+                                            string.digits)
             else:
                 break
         return f'"{return_str}"'
+
     def rand_bool():
         return bool(random.randint(0, 1))
 
+
 # Random sequence generator
-def RandomSequence(maxnum):
+def RandomSequence(maxnum: int) -> list[int]:
     ret = [random.randint(1, maxnum)]
     while True:
-        if random.randint(0, 1): # increase length by 50% chance
+        if random.randint(0, 1):  # increase length by 50% chance
             ret.append(random.randint(1, maxnum))
         else:
             break
     return ret
-    
+
+
 # Generate random values for class attributes
-def RandomInit(Class:ClassScanner):
+def RandomInit(Class: ClassScanner) -> list:
     attrs = []
     for attr_name, attr_type in Class.attributes.items():
         attrs.append(getattr(RandomObject, f"rand_{attr_type}")())
-    #instance = getattr(Class.object, Class.name)
+    # instance = getattr(Class.object, Class.name)
     return attrs
 
+
 # Generate MethodCall object with random values
-def RandomMethodCall(Class:ClassScanner, method_name:str):
-    method_args = Class.methods[method_name]
+def RandomMethodCall(Class: ClassScanner, method_name: str):
+    (method_args,return_type) = Class.methods[method_name]
     args = list()
     for arg_name, arg_type in method_args.items():
         if arg_type == "Self":
@@ -150,42 +186,55 @@ def RandomMethodCall(Class:ClassScanner, method_name:str):
             args.append(getattr(RandomObject, f"rand_{arg_type}")())
     return MethodCall(method_name, *args)
 
-def generateGenomeList(classList):
-    genomeList = []
+
+def generateGenomeList(classList: list[ClassScanner]) -> list[Genome]:
+    genomeList: list[Genome] = []
     for classObj in classList:
+        # don't consider empty class
+        if classObj.is_empty():
+            continue
+        
         for i in range(5):
             genome = Genome(classObj.name, *RandomInit(classObj))
             for methodName in classObj.methods.keys():
                 priority = RandomObject.rand_int()
-                genome.add_methodcall(RandomMethodCall(classObj, methodName), priority)
+                genome.add_methodcall(RandomMethodCall(
+                    classObj, methodName), priority)
             genomeList.append(genome)
     return genomeList
 
-def buildTestFile(targetName, genomeList):    
-    # Create Test file
-    # Run `python evolution/evolution.py -t testcases/dummy.py`
-    f = open("testcases/testsuites/"+targetName+"_test.py", "w")
-    f.write("import pytest\n\n")
-    f.write("import target\n")
-    f.write(f"from {targetName} import *\n\n")
-    f.write("def test_example():\n")
+
+# Create Test file
+def buildTestFile(target: pathlib.Path, genomeList: list[Genome]):
+    to_write = f"""
+import pytest
+import target
+
+def test_example():
+"""
     all_methodCalls = []
-    # write initializer in test_file and collect method lists
+    # write initializer and collect method lists
     for i, genome in enumerate(genomeList):
-        f.write(f"    obj_{genome.class_name}{i} = target.{genome.class_name}({', '.join(str(arg) for arg in genome.init_args)}) \n")
+        to_write += f"    obj_{genome.class_name}{i} = target.{genome.class_name}({', '.join(str(arg) for arg in genome.init_args)}) \n"
         for methodCall, priority in genome.methodCall_lst:
             all_methodCalls.append((i, methodCall, priority))
     all_methodCalls.sort(key=lambda tup: tup[2])
-    # write method calls in test_file
+
+    # write method calls
     for i, methodCall, priority in all_methodCalls:
-        f.write(f"    obj_{genome.class_name}{i}{methodCall.call_str()}")
-        f.write(f" # priority: {priority}\n")
+        to_write += f"    obj_{genome.class_name}{i}{methodCall.call_str()}"
+        to_write += f" # priority: {priority}\n"
 
-def fitness(genomeList): ## not implemented yet
-    return random.randint(0,100)
+    # write to file
+    (target.parent / "testsuites" /
+     f"test_{target.stem}.py").write_text(to_write)
 
 
-def evolve(finder:ClassFinder, threshold_score, max_generation):
+def fitness(genomeList: list[Genome]) -> float:  # TODO
+    return random.random()
+
+
+def evolve(finder: ClassFinder, threshold_score: float, max_generation: int):
     genomeList = generateGenomeList(finder.classList)
     prev_fitness = fitness(genomeList)
     for _ in range(max_generation):
@@ -202,23 +251,30 @@ def evolve(finder:ClassFinder, threshold_score, max_generation):
     return genomeList
 
 
+# For example, run `python evolution/evolution.py -t testcases/dummy.py`
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Rewrites programs.')
     parser.add_argument('-t', '--target', required=True)
     parser.add_argument("remaining", nargs="*")
     args = parser.parse_args()
 
-    target = args.target
+    target = pathlib.Path(args.target)
+
+    # check validity of the target
+    if target.suffix != '.py':
+        parser.error('Argument error: target has to be .py file')
+    if not (target.exists() and target.is_file()):
+        parser.error('Argument error: target has to be an existing file')
+
     sys.argv[1:] = args.remaining
-    print("sys argv", sys.argv[1:])
 
-    lines = (open(target, "r").readlines())
-    root = ast.parse("".join(lines), target)
+    target_code = target.read_text()
+    root = ast.parse(target_code, target)
 
-    # print(ast.dump(root, include_attributes=False, indent=2))   
     finder = ClassFinder()
     finder.visit(root)
     finder.report()
 
-    genomeList = evolve(finder, 95, 20)
-    buildTestFile(target[10:-3], genomeList)
+    genomeList = evolve(finder, 0.95, 20)
+
+    buildTestFile(target, genomeList)
