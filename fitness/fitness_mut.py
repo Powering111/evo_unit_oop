@@ -4,9 +4,11 @@ from . import helper
 
 def get_mutation ():
     # run mutatest
+    oldcwd = os.getcwd()
     os.chdir(helper.TMP_DIR)
     result = sp.run(f"mutatest -s ./{helper.TARGET_FILENAME} -t 'pytest {helper.TEST_PATH}' -r {helper.SEED}", 
                     shell=True, check=True, capture_output=True)
+    os.chdir(oldcwd)
     return result.stdout.decode()
 
 def parse_mutation (response) :
@@ -15,8 +17,7 @@ def parse_mutation (response) :
     total_run = [line for line in lines if "TOTAL RUNS: " in line]
     runtime = [line for line in lines if "total run time" in line]
 
-    assert len(detected) == 1
-    assert len(total_run) == 1
+    assert len(total_run) == 1, response
 
     if len(runtime) == 1: 
         runtime = runtime[0].split()[-1]
@@ -25,7 +26,11 @@ def parse_mutation (response) :
     else: 
         runtime = None
 
-    return (int(detected[0].split()[-1]), int(total_run[0].split()[-1]), runtime)
+    if len(detected) == 1:
+        detected_cnt = int(detected[0].split()[-1])
+    else:
+        detected_cnt = 0
+    return (detected_cnt, int(total_run[0].split()[-1]), runtime)
 
 def mutation_score (): 
     m = parse_mutation(get_mutation())

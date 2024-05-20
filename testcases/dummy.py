@@ -1,10 +1,8 @@
 from typing_extensions import Self
 
 class Counter : 
-    def __init__ (self, v: int, s:str): 
+    def __init__ (self, v: int): 
         self.value = v
-        self.strvalue = s
-
     def report (self) -> int: 
         print(self.value)
         return self.value

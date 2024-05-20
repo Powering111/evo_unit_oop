@@ -1,10 +1,9 @@
 import ast
 import sys
-import pathlib
-import argparse
 import random
 import string
-import reproduction
+from . import reproduction
+from fitness import combine as fitness
 # 1. scanner - Find attribute, method
 # 2. function - attribute init
 # 3. method call order
@@ -16,8 +15,12 @@ import reproduction
 
 # Find class in target file and execute scanner
 class ClassFinder(ast.NodeVisitor):
-    def __init__(self):
+    def __init__(self, target_code: str):
         self.classList: list[ClassScanner] = []
+
+        root = ast.parse(target_code)
+        self.visit(root)
+        self.report()
 
     def visit_ClassDef(self, node):
         newClass = ClassScanner().visit(node)
@@ -34,8 +37,10 @@ class ClassFinder(ast.NodeVisitor):
 class ClassScanner():
     def __init__(self):
         self.name: str = ""
-        self.attributes: dict[str,str] = dict()  # dict[attribute name, attribute type]
-        self.methods: dict[str,tuple[dict[str,str],str]] = dict()  # dict[method name, (dict[arg name, arg type],return type)]
+        # dict[attribute name, attribute type]
+        self.attributes: dict[str, str] = dict()
+        # dict[method name, (dict[arg name, arg type],return type)]
+        self.methods: dict[str, tuple[dict[str, str], str]] = dict()
 
     def visit(self, node):
         self.name = node.name
@@ -48,7 +53,7 @@ class ClassScanner():
         return self
 
     def visit_init(self, node):
-        argdict: dict[str,str] = dict()  # dict[arg name, arg type]
+        argdict: dict[str, str] = dict()  # dict[arg name, arg type]
         for x in node.args.args[1:]:
             assert x.annotation is not None
             argdict[x.arg] = x.annotation.id
@@ -65,36 +70,39 @@ class ClassScanner():
         argsDict = dict()
         for x in node.args.args[1:]:
             argsDict[x.arg] = x.annotation.id
-        
+
         # return type
-        return_type='None'
+        return_type = 'None'
         if node.returns is not None:
-            return_type=node.returns.id
-        self.methods[name] = (argsDict,return_type)
+            return_type = node.returns.id
+        self.methods[name] = (argsDict, return_type)
 
     def report(self):
         print(f"class {self.name}:\n  attributes")
-        if len(self.attributes)==0:
+        if len(self.attributes) == 0:
             print("    empty")
         else:
-            for (name,type) in self.attributes.items():
+            for (name, type) in self.attributes.items():
                 print(f"    {name}: {type}")
 
         print(f"  methods")
-        if len(self.methods)==0:
+        if len(self.methods) == 0:
             print("    empty")
         else:
-            for (name,(arg_type,return_type)) in self.methods.items():
-                arg_str = ', '.join(['self']+[f'{name}: {type}' for (name,type) in arg_type.items()])
+            for (name, (arg_type, return_type)) in self.methods.items():
+                arg_str = ', '.join(
+                    ['self']+[f'{name}: {type}' for (name, type) in arg_type.items()])
                 print(f"    def {name}({arg_str}) -> {return_type}")
 
     def is_empty(self) -> bool:
-        if len(self.attributes)==0 and len(self.methods)==0:
+        if len(self.attributes) == 0 and len(self.methods) == 0:
             return True
         else:
             return False
 
 # method call code string
+
+
 class MethodCall():
     def __init__(self, method_name, *args, **kwargs):
         self.method_name = method_name
@@ -176,7 +184,7 @@ def RandomInit(Class: ClassScanner) -> list:
 
 # Generate MethodCall object with random values
 def RandomMethodCall(Class: ClassScanner, method_name: str):
-    (method_args,return_type) = Class.methods[method_name]
+    (method_args, return_type) = Class.methods[method_name]
     args = list()
     for arg_name, arg_type in method_args.items():
         if arg_type == "Self":
@@ -193,7 +201,7 @@ def generateGenomeList(classList: list[ClassScanner]) -> list[Genome]:
         # don't consider empty class
         if classObj.is_empty():
             continue
-        
+
         for i in range(5):
             genome = Genome(classObj.name, *RandomInit(classObj))
             for methodName in classObj.methods.keys():
@@ -204,9 +212,9 @@ def generateGenomeList(classList: list[ClassScanner]) -> list[Genome]:
     return genomeList
 
 
-# Create Test file
-def buildTestFile(target: pathlib.Path, genomeList: list[Genome]):
-    to_write = f"""
+# create test python script from the given genome list
+def build_test(genomeList: list[Genome]) -> str:
+    test_code = f"""
 import pytest
 import target
 
@@ -215,66 +223,52 @@ def test_example():
     all_methodCalls = []
     # write initializer and collect method lists
     for i, genome in enumerate(genomeList):
-        to_write += f"    obj_{genome.class_name}{i} = target.{genome.class_name}({', '.join(str(arg) for arg in genome.init_args)}) \n"
+        test_code += f"    obj_{genome.class_name}{i} = target.{genome.class_name}({', '.join(str(arg) for arg in genome.init_args)}) \n"
         for methodCall, priority in genome.methodCall_lst:
             all_methodCalls.append((i, methodCall, priority))
     all_methodCalls.sort(key=lambda tup: tup[2])
 
     # write method calls
     for i, methodCall, priority in all_methodCalls:
-        to_write += f"    obj_{genome.class_name}{i}{methodCall.call_str()}"
-        to_write += f" # priority: {priority}\n"
+        test_code += f"    obj_{genome.class_name}{i}{methodCall.call_str()}"
+        test_code += f" # priority: {priority}\n"
 
-    # write to file
-    (target.parent / "testsuites" /
-     f"test_{target.stem}.py").write_text(to_write)
+    return test_code
 
 
-def fitness(genomeList: list[Genome]) -> float:  # TODO
-    return random.random()
+# abstraction of the entire generation
+class Generation():
+    def __init__(self, target_code: str):
+        self.finder = ClassFinder(target_code)
+        self.target_code = target_code
 
+    def get_fitness(self, genomeList: list[Genome]) -> float:
+        test_code = build_test(genomeList)
+        score = fitness.fitness_score(self.target_code, test_code)
+        return score
 
-def evolve(finder: ClassFinder, threshold_score: float, max_generation: int):
-    genomeList = generateGenomeList(finder.classList)
-    prev_fitness = fitness(genomeList)
-    for _ in range(max_generation):
+    def evolve(self, threshold_score: float, max_generation: int) -> list[Genome]:
+        genomeList = generateGenomeList(self.finder.classList)
+        prev_fitness = self.get_fitness(genomeList)
+        for _ in range(max_generation):
+            print(f"fitness: {prev_fitness}")
+            if prev_fitness >= threshold_score:
+                return genomeList
+            newgenList = reproduction.generate_newgen(genomeList)
+            reproduction.mutate(newgenList)
+            new_fitness = fitness(newgenList)
+            if new_fitness > prev_fitness:
+                genomeList = newgenList
+                prev_fitness = new_fitness
         print(prev_fitness)
-        if prev_fitness >= threshold_score:
-            return genomeList
-        newgenList = reproduction.generate_newgen(genomeList)
-        reproduction.mutate(newgenList)
-        new_fitness = fitness(newgenList)
-        if new_fitness > prev_fitness:
-            genomeList = newgenList
-            prev_fitness = new_fitness
-    print(prev_fitness)
-    return genomeList
+        return genomeList
 
 
 # For example, run `python evolution/evolution.py -t testcases/dummy.py`
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Rewrites programs.')
-    parser.add_argument('-t', '--target', required=True)
-    parser.add_argument("remaining", nargs="*")
-    args = parser.parse_args()
+# run actual evolution and
+def run_evolution(target_code: str) -> str:
 
-    target = pathlib.Path(args.target)
+    genomeList = Generation(target_code).evolve(0.95, 20)
+    test_code = build_test(genomeList)
 
-    # check validity of the target
-    if target.suffix != '.py':
-        parser.error('Argument error: target has to be .py file')
-    if not (target.exists() and target.is_file()):
-        parser.error('Argument error: target has to be an existing file')
-
-    sys.argv[1:] = args.remaining
-
-    target_code = target.read_text()
-    root = ast.parse(target_code, target)
-
-    finder = ClassFinder()
-    finder.visit(root)
-    finder.report()
-
-    genomeList = evolve(finder, 0.95, 20)
-
-    buildTestFile(target, genomeList)
+    return test_code

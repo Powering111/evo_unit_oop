@@ -1,7 +1,7 @@
 from . import fitness_cov, fitness_mut
 from . import helper
 
-def fitness_score (target_code: str, test_suite: str) -> tuple[float, float|None] :
+def fitness_score (target_code: str, test_suite: str) -> float :
     helper.cleanup()
     helper.write_target(target_code, test_suite)
     helper.make_testsuite() # TODO: verify
@@ -14,4 +14,5 @@ def fitness_score (target_code: str, test_suite: str) -> tuple[float, float|None
         fitness += mut
         # get time  
 
-    return (fitness, time)
+    # to be replaced to advanced algorithm later
+    return fitness
