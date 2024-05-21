@@ -255,8 +255,8 @@ class Generation():
             if prev_fitness >= threshold_score:
                 return genomeList
             newgenList = reproduction.generate_newgen(genomeList)
-            reproduction.mutate(newgenList)
-            new_fitness = fitness(newgenList)
+            newgenList = reproduction.mutate(newgenList)
+            new_fitness = self.get_fitness(newgenList)
             if new_fitness > prev_fitness:
                 genomeList = newgenList
                 prev_fitness = new_fitness

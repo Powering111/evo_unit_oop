@@ -42,7 +42,7 @@ def mutate(genomeList: list["Genome"]) -> list["Genome"]:
     for i, _ in enumerate(genomeList):
         if random.random() < MUTATION_PROB:
             mutate_methodCall(genomeList[i].methodCall_lst)
-
+    return genomeList
 
 def mutate_methodCall(methodCalls: list):
     for i, mc in enumerate(methodCalls):

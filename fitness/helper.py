@@ -34,6 +34,7 @@ def walk(node, mutator, *args):
 
     return node
 
+class makeTestsuiteFailedException(Exception): pass
 # This rewrite the TEST_PATH as a result
 def make_testsuite () :
     oldcwd = os.getcwd()
@@ -69,7 +70,13 @@ def make_testsuite () :
         f.write(ast.unparse(root))
 
     path = os.path.join(TMP_DIR, "instrument.py")
-    result = sp.run(f"pytest -rP {path}", shell=True, check=True, capture_output=True)
+    try:
+        result = sp.run(f"pytest -rP {path}", shell=True, check=True, capture_output=True, timeout=10)
+    except sp.TimeoutExpired:
+        raise makeTestsuiteFailedException
+    except sp.CalledProcessError:
+        raise makeTestsuiteFailedException
+
     lines = result.stdout.decode().split('\n')
     assert_lines = [' '.join(line.split(' ')[1:]) for line in lines if ASSERT_STR in line]
     
@@ -94,5 +101,3 @@ def make_testsuite () :
     
     os.chdir(oldcwd)
 
-if __name__ == "__main__" :
-    make_testsuite()
