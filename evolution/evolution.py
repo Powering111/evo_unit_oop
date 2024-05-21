@@ -10,7 +10,7 @@ from fitness.combine import fitness_score
 # Find class in target file and execute scanner
 class ClassFinder(ast.NodeVisitor):
     def __init__(self):  
-        self.classList = [] # list of ClassScanner
+        self.classList: list[ClassScanner] = []
         
     def visit_ClassDef(self, node):
         newClass = ClassScanner().visit(node)
@@ -62,18 +62,33 @@ class ClassScanner():
         if isinstance(node.returns, ast.Name):
             self.method_return[name] = node.returns.id
         else:
-            self.method_return[name] = None    
+            self.method_return[name] = "None"  
 
     def report(self):
-        print("name", self.name)    
-        print("attributes", self.attributes)
-        print("method_args", self.method_args)
-        print("method_return", self.method_return)
+        print(f"class {self.name}:\n  attributes")
+        if len(self.attributes) == 0:
+            print("    empty")
+        else:
+            for (name, type) in self.attributes.items():
+                print(f"    {name}: {type}")
+
+        print(f"  methods")
+        if len(self.method_args) == 0:
+            print("    empty")
+        else:
+            for (name, arg_type) in self.method_args.items():
+                arg_str = ', '.join(
+                    ['self']+[f'{name}: {type}' for (name, type) in arg_type.items()])
+                print(f"    def {name}({arg_str}) -> {self.method_return[name]}")
+
+    def is_empty(self) -> bool:
+        if len(self.attributes) == 0 and len(self.method_args) == 0:
+            return True
+        else:
+            return False
 
 
 # method call code string
-
-
 class MethodCall():
     def __init__(self, method_name, *args, **kwargs):
         self.method_name = method_name
@@ -170,6 +185,7 @@ class Generation():
     def __init__(self, target_code: str):
         self.finder = ClassFinder()
         self.finder.visit(ast.parse(target_code))
+        self.finder.report() # debug
         self.target_code = target_code
 
     def get_fitness(self, genomeList: list[Genome]) -> float:
@@ -243,7 +259,7 @@ def build_test(genomeList):
 
 def run_evolution(target_code: str) -> str:
 
-    genomeList = Generation(target_code).evolve(2, 1)
+    genomeList = Generation(target_code).evolve(0.8, 10)
     test_code = build_test(genomeList)
 
     return test_code
