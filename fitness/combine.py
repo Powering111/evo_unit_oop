@@ -14,4 +14,4 @@ def fitness_score (target_code: str, test_suite: str) -> tuple[float, float|None
         fitness += mut
         # get time  
 
-    return (fitness, time)
+    return (fitness, time) #finess: max3
