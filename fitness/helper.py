@@ -8,7 +8,7 @@ def cleanup():
     # if os.path.exists(TMP_DIR) and os.path.isdir(TMP_DIR):
     #     shutil.rmtree(TMP_DIR)
     if not os.path.exists(TMP_DIR):
-        os.mkdir(TMP_DIR)
+        os.makedirs(TMP_DIR)
 
 def write_target (target_code: str, test_suite: str) : 
     oldcwd = os.getcwd()
