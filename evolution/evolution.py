@@ -95,7 +95,7 @@ class Genome(): #1:1 with an object
         self.class_name = class_name
         self.init_args = args
         self.init_kwargs = kwargs
-        self.methodCall_lst = [] #(methodCall, int)
+        self.methodCall_lst = [] #(methodCall/Assertion, int)
     def set_methodCall_lst(self, methodCall_lst):
         self.methodCall_lst = methodCall_lst
     def add_methodcall(self, methodcall:MethodCall, priority:int):
@@ -170,30 +170,10 @@ def buildTestFile(genomeList):
     # Create Test file
     # Run `python evolution/evolution.py -t testcases/dummy.py`
     f = open("testcases/testsuites/"+target[10:-3]+"_test.py", "w")
-    f.write("import pytest\n\n")
-    f.write("import target\n")
-    f.write(f"from {target[10:-3]} import *\n\n")
-    f.write("def test_example():\n")
-    all_methodCalls = []
-    # write initializer in test_file and collect method lists
-    for i, genome in enumerate(genomeList):
-        f.write(f"    obj_{genome.class_name}{i} = target.{genome.class_name}({', '.join(str(arg) for arg in genome.init_args)}) \n")
-        for methodCall, priority in genome.methodCall_lst:
-            all_methodCalls.append((i, methodCall, priority))
-    all_methodCalls.sort(key=lambda tup: tup[2])
-    # write method calls in test_file
-    for i, methodCall, priority in all_methodCalls:
-        if isinstance(methodCall, MethodCall):
-            f.write(f"    obj_{genome.class_name}{i}{methodCall.call_str()}")
-        elif isinstance(methodCall, Assertion):
-            if methodCall.attr != None:
-                f.write(f"    #assert obj_{genome.class_name}{i}.{methodCall.attr} == ")
-            elif methodCall.MethodCall != None:
-                f.write(f"    #assert obj_{genome.class_name}{i}{methodCall.MethodCall.call_str()} == ")
-        f.write(f" # priority: {priority}\n")
+    f.write(testCaseStr(genomeList))
 
 def testCaseStr(genomeList):
-    return_str = f"import pytest\n\nimport target\nfrom {target[10:-3]} import *\n\ndef test_example():\n"
+    return_str = f"import target\n\ndef test_example():\n"
     all_methodCalls = []
     # write initializer in test_file and collect method lists
     for i, genome in enumerate(genomeList):
@@ -202,19 +182,28 @@ def testCaseStr(genomeList):
             all_methodCalls.append((i, methodCall, priority))
     all_methodCalls.sort(key=lambda tup: tup[2])
     # write method calls in test_file
+    count = 0
     for i, methodCall, priority in all_methodCalls:
         if isinstance(methodCall, MethodCall):
             return_str += (f"    obj_{genome.class_name}{i}{methodCall.call_str()}")
         elif isinstance(methodCall, Assertion):
             if methodCall.attr != None:
-                return_str += (f"    #assert obj_{genome.class_name}{i}.{methodCall.attr} == ")
+                return_str += (f"    test{count} = obj_{genome.class_name}{i}.{methodCall.attr}\n")
+                return_str +=(f"    assert test{count} == test{count}")
+                count +=1
             elif methodCall.MethodCall != None:
-                return_str += (f"    #assert obj_{genome.class_name}{i}{methodCall.MethodCall.call_str()} == ")
+                return_str += (f"    test{count} = obj_{genome.class_name}{i}{methodCall.MethodCall.call_str()}\n")
+                return_str +=(f"    assert test{count} == test{count}")
         return_str += (f" # priority: {priority}\n")
     return return_str
 
 def fitness(genomeList): ## not implemented yet
-    #return fitness_score("".join(lines), testCaseStr(genomeList))
+    print("-----------------------")
+    print("".join(lines))
+    print("-----------------------")
+    print(testCaseStr(genomeList))
+    print("-----------------------")
+    return fitness_score("".join(lines), testCaseStr(genomeList))
     return 1
 
 
@@ -253,5 +242,5 @@ if __name__ == '__main__':
     finder.report()
 
     genomeList = evolve(finder, 3, 1)
-    print(genomeList)
+    print(testCaseStr(genomeList))
     buildTestFile(genomeList)
