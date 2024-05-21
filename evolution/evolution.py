@@ -203,7 +203,13 @@ def testCaseStr(genomeList):
     all_methodCalls.sort(key=lambda tup: tup[2])
     # write method calls in test_file
     for i, methodCall, priority in all_methodCalls:
-        return_str += (f"    obj_{genome.class_name}{i}{methodCall.call_str()}")
+        if isinstance(methodCall, MethodCall):
+            return_str += (f"    obj_{genome.class_name}{i}{methodCall.call_str()}")
+        elif isinstance(methodCall, Assertion):
+            if methodCall.attr != None:
+                return_str += (f"    #assert obj_{genome.class_name}{i}.{methodCall.attr} == ")
+            elif methodCall.MethodCall != None:
+                return_str += (f"    #assert obj_{genome.class_name}{i}{methodCall.MethodCall.call_str()} == ")
         return_str += (f" # priority: {priority}\n")
     return return_str
 
