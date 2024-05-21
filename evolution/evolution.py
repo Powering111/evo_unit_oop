@@ -75,8 +75,9 @@ class ClassScanner():
 
 
 class MethodCall():
-    def __init__(self, method_name, *args, **kwargs):
+    def __init__(self, class_name, method_name, *args, **kwargs):
         self.method_name = method_name
+        self.class_name = class_name
         self.args = args
         self.kwargs = kwargs
 
@@ -89,7 +90,8 @@ class MethodCall():
         return f".{self.method_name}({', '.join(arg_list)})"
     
 class Assertion():
-    def __init__(self, methodcall, attr_name):
+    def __init__(self, class_name, methodcall, attr_name):
+        self.class_name = class_name
         self.MethodCall = methodcall
         self.attr = attr_name
 
@@ -164,7 +166,7 @@ def RandomMethodCall(Class:ClassScanner, method_name:str):
             args.append(f"obj_{Class.name}{i}")
         else:
             args.append(getattr(RandomObject, f"rand_{arg_type}")())
-    return MethodCall(method_name, *args)
+    return MethodCall(Class.name, method_name, *args)
 
 class Generation():
     def __init__(self, target_code: str):
@@ -197,9 +199,6 @@ def generateGenomeList(classList):
     genomeList = []
     for classObj in classList:
         # don't consider empty class
-        if classObj.is_empty():
-            continue
-
         for i in range(5):
             genome = Genome(classObj.name, *RandomInit(classObj))
             num_methods = len(classObj.method_args)
@@ -208,11 +207,11 @@ def generateGenomeList(classList):
                 if i < num_methods:
                     if list(classObj.method_return.values())[i] != None:
                         rand_method_call =RandomMethodCall(classObj, list(classObj.method_args)[i])
-                        genome.add_methodcall(Assertion(rand_method_call, None), priority)
+                        genome.add_methodcall(Assertion(classObj.name, rand_method_call, None), priority)
                     else:
                         genome.add_methodcall(RandomMethodCall(classObj, list(classObj.method_args)[i]), priority)
                 else:
-                    genome.add_methodcall(Assertion(None, list(classObj.attributes)[i-num_methods]), priority)
+                    genome.add_methodcall(Assertion(classObj.name, None, list(classObj.attributes)[i-num_methods]), priority)
             genomeList.append(genome)
     return genomeList
 
@@ -224,20 +223,24 @@ def build_test(genomeList):
         return_str += (f"    obj_{genome.class_name}{i} = target.{genome.class_name}({', '.join(str(arg) for arg in genome.init_args)}) \n")
         for methodCall, priority in genome.methodCall_lst:
             all_methodCalls.append((i, methodCall, priority))
+            print(i, methodCall.class_name)
     all_methodCalls.sort(key=lambda tup: tup[2])
     # write method calls in test_file
     count = 0
-    for i, methodCall, priority in all_methodCalls:
+
+    for (i, methodCall, priority) in all_methodCalls:
+        #print(i, methodCall.class_name)
         if isinstance(methodCall, MethodCall):
-            return_str += (f"    obj_{genome.class_name}{i}{methodCall.call_str()}")
+            return_str += (f"    obj_{methodCall.class_name}{i}{methodCall.call_str()}")
         elif isinstance(methodCall, Assertion):
             if methodCall.attr != None:
-                return_str += (f"    test{count} = obj_{genome.class_name}{i}.{methodCall.attr}\n")
+                return_str += (f"    test{count} = obj_{methodCall.class_name}{i}.{methodCall.attr}\n")
                 return_str +=(f"    assert test{count} == test{count}")
                 count +=1
             elif methodCall.MethodCall != None:
-                return_str += (f"    test{count} = obj_{genome.class_name}{i}{methodCall.MethodCall.call_str()}\n")
+                return_str += (f"    test{count} = obj_{methodCall.class_name}{i}{methodCall.MethodCall.call_str()}\n")
                 return_str +=(f"    assert test{count} == test{count}")
+                count+=1
         return_str += (f" # priority: {priority}\n")
     return return_str
 
