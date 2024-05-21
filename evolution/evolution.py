@@ -4,6 +4,7 @@ import argparse
 import random
 import string
 import reproduction
+from ..fitness.combine import fitness_score
 # 1. scanner - Find attribute, method
 # 2. function - attribute init
 # 3. method call order
@@ -83,7 +84,7 @@ class MethodCall():
         return f".{self.method_name}({', '.join(arg_list)})"
 
 # Test case for a class
-class Genome():
+class Genome(): #1:1 with an object
     def __init__(self, class_name, *args, **kwargs):
         self.class_name = class_name
         self.init_args = args
@@ -172,8 +173,21 @@ def buildTestFile(targetName, genomeList):
         f.write(f"    obj_{genome.class_name}{i}{methodCall.call_str()}")
         f.write(f" # priority: {priority}\n")
 
+def testCaseStr(genomeList):
+    '''all_methodCalls = []
+    # write initializer in test_file and collect method lists
+    for i, genome in enumerate(genomeList):
+        f.write(f"    obj_{genome.class_name}{i} = target.{genome.class_name}({', '.join(str(arg) for arg in genome.init_args)}) \n")
+        for methodCall, priority in genome.methodCall_lst:
+            all_methodCalls.append((i, methodCall, priority))
+    all_methodCalls.sort(key=lambda tup: tup[2])
+    # write method calls in test_file
+    for i, methodCall, priority in all_methodCalls:
+        f.write(f"    obj_{genome.class_name}{i}{methodCall.call_str()}")
+        f.write(f" # priority: {priority}\n")
+'''
 def fitness(genomeList): ## not implemented yet
-    return random.randint(0,100)
+    fitness_score(lines)
 
 
 def evolve(finder:ClassFinder, threshold_score, max_generation):
