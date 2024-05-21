@@ -73,8 +73,10 @@ def make_testsuite () :
     try:
         result = sp.run(f"pytest -rP {path}", shell=True, check=True, capture_output=True, timeout=10)
     except sp.TimeoutExpired:
+        os.chdir(oldcwd)
         raise makeTestsuiteFailedException
     except sp.CalledProcessError:
+        os.chdir(oldcwd)
         raise makeTestsuiteFailedException
 
     lines = result.stdout.decode().split('\n')
