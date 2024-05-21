@@ -51,20 +51,17 @@ def make_testsuite () :
         if not len(node.test.comparators) == 1:         return node 
         rhs = node.test.comparators[0]
 
-        node.test.left = ast.Call(ast.Name(STRINGIFY_NAME), [node.test.left], [])
+        node.test.left = ast.Call(ast.Name("pickle.dumps"), [node.test.left], [])
         node.test.comparators[0] = ast.Call(ast.Name(LOGGER_NAME), [rhs], [])
         return node
 
     root.body = walk(root.body, instrument)                         # type: ignore
 
     # TODO: this logger kinda assume the data to be string only
-    logger = ast.parse(f"def {LOGGER_NAME} (x): x = {STRINGIFY_NAME}(x); print('{ASSERT_STR}', x); return x")
-    stringifier = ast.parse(f"def {STRINGIFY_NAME} (x): return pickle.dumps(x)") 
+    logger = ast.parse(f"def {LOGGER_NAME} (x): x = pickle.dumps(x); print('{ASSERT_STR}', x); return x")
 
     with open ('instrument.py', 'w') as f: 
         f.write('import pickle\n\n')
-        f.write(ast.unparse(stringifier))
-        f.write('\n\n')
         f.write(ast.unparse(logger))
         f.write('\n\n')
         f.write(ast.unparse(root))
@@ -90,7 +87,7 @@ def make_testsuite () :
         if not len(node.test.comparators) == 1:         return node 
 
         result = results.pop(0)
-        node.test.left = ast.Call(ast.Name(STRINGIFY_NAME), [node.test.left], [])
+        node.test.left = ast.Call(ast.Name('str'), [ast.Call(ast.Name("pickle.dumps"), [node.test.left], [])], [])
         node.test.comparators[0] = ast.Constant(result)
         return node
 
@@ -99,6 +96,7 @@ def make_testsuite () :
     root.body = walk(root.body, patch_result, assert_lines)             # type: ignore
 
     with open (TEST_PATH, 'w') as f: 
+        f.write('import pickle\n\n')
         f.write(ast.unparse(root))
     
     os.chdir(oldcwd)
