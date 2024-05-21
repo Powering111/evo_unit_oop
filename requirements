@@ -1,3 +1,9 @@
-coverage==7.5.0
+coverage==5.5
+exceptiongroup==1.2.1
+iniconfig==2.0.0
 mutatest==3.1.0
+packaging==24.0
+pluggy==1.5.0
 pytest==8.2.0
+tomli==2.0.1
+typing_extensions==4.11.0
