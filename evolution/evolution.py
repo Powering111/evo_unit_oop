@@ -1,6 +1,5 @@
 import ast
 import sys
-import argparse
 import random
 import string
 import time
@@ -16,13 +15,14 @@ class ClassFinder(ast.NodeVisitor):
     def visit_ClassDef(self, node):
         newClass = ClassScanner().visit(node)
         self.classList.append(newClass)
-        rand_newClass = lambda : RandomInit(newClass)
+        def rand_newClass(): return RandomInit(newClass)
         setattr(RandomObject, f"rand_{newClass.name}", rand_newClass)
 
     def report(self):
         for cls in self.classList:
             cls.report()
-        
+
+
 # Get class attributes and methods
 class ClassScanner():
     def __init__(self):
@@ -39,10 +39,11 @@ class ClassScanner():
                 else:
                     self.visit_method(fundef)
         return self
-    
+
     def visit_init(self, node):
-        argdict = dict() # dict[arg name, arg type]
+        argdict: dict[str, str] = dict()  # dict[arg name, arg type]
         for x in node.args.args[1:]:
+            assert x.annotation is not None
             argdict[x.arg] = x.annotation.id
         for e in node.body:
             if isinstance(e, ast.Assign):
@@ -51,7 +52,7 @@ class ClassScanner():
                     self.attributes[attr_name] = argdict[e.value.id]
                 elif isinstance(e.value, ast.Call):
                     self.attributes[attr_name] = "functioncall"
-                
+
     def visit_method(self, node):
         name = node.name
         argsDict = dict()
@@ -70,12 +71,15 @@ class ClassScanner():
         print("method_return", self.method_return)
 
 
-# method call code string 
+# method call code string
+
+
 class MethodCall():
     def __init__(self, method_name, *args, **kwargs):
         self.method_name = method_name
         self.args = args
         self.kwargs = kwargs
+
     def call_str(self):
         arg_list = []
         for arg in self.args:
@@ -98,25 +102,37 @@ class Genome(): #1:1 with an object
         self.methodCall_lst = [] #(methodCall/Assertion, int)
     def set_methodCall_lst(self, methodCall_lst):
         self.methodCall_lst = methodCall_lst
-    def add_methodcall(self, methodcall:MethodCall, priority:int):
+
+    def add_methodcall(self, methodcall: MethodCall, priority: int):
         self.methodCall_lst.append((methodcall, priority))
+
+    def __repr__(self):
+        meta = f"genome for {self.class_name}: a={self.init_args} kw={self.init_kwargs}"
+        gene = "\n\t".join(str(mc) for mc in self.methodCall_lst)
+        return meta + '\n\t' + gene
+
 
 # Random object generator
 class RandomObject():
     def rand_int():
         return random.randint(-sys.maxsize - 1, sys.maxsize)
+
     def rand_float():
         return random.uniform(-sys.maxsize - 1, sys.maxsize)
+
     def rand_str():
         return_str = random.choice(string.ascii_letters + string.digits)
-        for i in range(100):
-            if random.randint(0, 10)<9:
-                return_str += random.choice(string.ascii_letters + string.digits)
+        for _ in range(100):
+            if random.randint(0, 10) < 9:
+                return_str += random.choice(string.ascii_letters +
+                                            string.digits)
             else:
                 break
         return f'"{return_str}"'
+
     def rand_bool():
         return bool(random.randint(0, 1))
+
 
 # Random sequence generator
 def RandomSequence(maxnum):
@@ -127,14 +143,16 @@ def RandomSequence(maxnum):
         else:
             break
     return ret
-    
+
+
 # Generate random values for class attributes
-def RandomInit(Class:ClassScanner):
+def RandomInit(Class: ClassScanner) -> list:
     attrs = []
     for attr_name, attr_type in Class.attributes.items():
         attrs.append(getattr(RandomObject, f"rand_{attr_type}")())
-    #instance = getattr(Class.object, Class.name)
+    # instance = getattr(Class.object, Class.name)
     return attrs
+
 
 # Generate MethodCall object with random values
 def RandomMethodCall(Class:ClassScanner, method_name:str):
@@ -178,6 +196,10 @@ class Generation():
 def generateGenomeList(classList):
     genomeList = []
     for classObj in classList:
+        # don't consider empty class
+        if classObj.is_empty():
+            continue
+
         for i in range(5):
             genome = Genome(classObj.name, *RandomInit(classObj))
             num_methods = len(classObj.method_args)
@@ -197,7 +219,7 @@ def generateGenomeList(classList):
 def build_test(genomeList):
     return_str = f"import target\n\ndef test_example():\n"
     all_methodCalls = []
-    # write initializer in test_file and collect method lists
+    # write initializer and collect method lists
     for i, genome in enumerate(genomeList):
         return_str += (f"    obj_{genome.class_name}{i} = target.{genome.class_name}({', '.join(str(arg) for arg in genome.init_args)}) \n")
         for methodCall, priority in genome.methodCall_lst:

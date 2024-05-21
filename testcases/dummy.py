@@ -19,4 +19,4 @@ class Counter :
         self.value -= 1
 
     def __add__ (self, other: Self) -> Self:
-        return Counter(self.value + other.value)
+        return Counter(self.value + other.value,self.strvalue)

@@ -5,6 +5,12 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .evolution import Genome as Genome
 
+import sys
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .evolution import Genome as Genome
+
 
 def mix_init(genome1: "Genome", genome2: "Genome") -> "Genome":
     return genome1 if bool(random.getrandbits(1)) else genome2
@@ -42,7 +48,7 @@ def mutate(genomeList: list["Genome"]) -> list["Genome"]:
     for i, _ in enumerate(genomeList):
         if random.random() < MUTATION_PROB:
             mutate_methodCall(genomeList[i].methodCall_lst)
-
+    return genomeList
 
 def mutate_methodCall(methodCalls: list):
     for i, mc in enumerate(methodCalls):
