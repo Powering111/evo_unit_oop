@@ -118,7 +118,7 @@ class Genome(): #1:1 with an object
     def set_methodCall_lst(self, methodCall_lst):
         self.methodCall_lst = methodCall_lst
 
-    def add_methodcall(self, methodcall: MethodCall, priority: int):
+    def add_methodcall(self, methodcall, priority: int):
         self.methodCall_lst.append((methodcall, priority))
 
     def __repr__(self):
@@ -190,8 +190,8 @@ class Generation():
 
     def get_fitness(self, genomeList: list[Genome]) -> float:
         test_code = build_test(genomeList)
-        #score = fitness.fitness_score(self.target_code, test_code)
-        return 1
+        score = fitness_score(self.target_code, test_code)
+        return score
 
     def evolve(self, threshold_score: float, max_generation: int) -> list[Genome]:
         genomeList = generateGenomeList(self.finder.classList)
@@ -241,6 +241,7 @@ def build_test(genomeList):
         for methodCall, priority in genome.methodCall_lst:
             all_methodCalls.append((i, methodCall, priority))
     all_methodCalls.sort(key=lambda tup: tup[2])
+
     # write method calls in test_file
     count = 0
     for i, methodCall, priority in all_methodCalls:
@@ -257,9 +258,9 @@ def build_test(genomeList):
         return_str += (f" # priority: {priority}\n")
     return return_str
 
-def run_evolution(target_code: str) -> str:
+def run_evolution(target_code: str, threshold_score: float = 0.8, max_generation: int = 10) -> str:
 
-    genomeList = Generation(target_code).evolve(0.8, 10)
+    genomeList = Generation(target_code).evolve(threshold_score, max_generation)
     test_code = build_test(genomeList)
 
     return test_code

@@ -2,6 +2,7 @@ import sys
 import argparse
 import pathlib
 from evolution import evolution 
+from fitness import combine
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Rewrites programs.')
@@ -19,11 +20,15 @@ if __name__ == '__main__':
     sys.argv[1:] = args.remaining
 
     target_code = target.read_text()
-    final_test_code = evolution.run_evolution(target_code)
+    final_test_code = evolution.run_evolution(target_code, 0.9, 10)
 
     path_to_write = (target.parent / "testsuites" / f"test_{target.stem}.py")
     print(path_to_write)
     print(final_test_code)
     with open(path_to_write, 'w') as f:
         f.write(final_test_code)
+
+    ######################################################
+
+    combine.fitness_score(target_code, final_test_code, verbose=True)
 
