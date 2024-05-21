@@ -4,15 +4,9 @@ import argparse
 import random
 import string
 import time
-import reproduction
+from evolution import reproduction
+import pathlib
 from fitness.combine import fitness_score
-# 1. scanner - Find attribute, method
-# 2. function - attribute init
-# 3. method call order
-# 6. function - Create new generation
-# 4. function - reproduce input reproduce
-# 5. function - input mutation 
-# 7. Compare between generations -> select
 
 # Find class in target file and execute scanner
 class ClassFinder(ast.NodeVisitor):
@@ -154,6 +148,33 @@ def RandomMethodCall(Class:ClassScanner, method_name:str):
             args.append(getattr(RandomObject, f"rand_{arg_type}")())
     return MethodCall(method_name, *args)
 
+class Generation():
+    def __init__(self, target_code: str):
+        self.finder = ClassFinder()
+        self.finder.visit(ast.parse(target_code))
+        self.target_code = target_code
+
+    def get_fitness(self, genomeList: list[Genome]) -> float:
+        test_code = build_test(genomeList)
+        #score = fitness.fitness_score(self.target_code, test_code)
+        return 1
+
+    def evolve(self, threshold_score: float, max_generation: int) -> list[Genome]:
+        genomeList = generateGenomeList(self.finder.classList)
+        prev_fitness = self.get_fitness(genomeList)
+        for _ in range(max_generation):
+            print(f"fitness: {prev_fitness}")
+            if prev_fitness >= threshold_score:
+                return genomeList
+            newgenList = reproduction.generate_newgen(genomeList)
+            reproduction.mutate(newgenList)
+            new_fitness = self.get_fitness(newgenList)
+            if new_fitness > prev_fitness:
+                genomeList = newgenList
+                prev_fitness = new_fitness
+        print(f"fitness: {prev_fitness}")
+        return genomeList
+
 def generateGenomeList(classList):
     genomeList = []
     for classObj in classList:
@@ -173,14 +194,8 @@ def generateGenomeList(classList):
             genomeList.append(genome)
     return genomeList
 
-def buildTestFile(genomeList):    
-    # Create Test file
-    # Run `python evolution/evolution.py -t testcases/dummy.py`
-    f = open("testcases/testsuites/"+target[10:-3]+"_test.py", "w")
-    f.write(testCaseStr(genomeList))
-
-def testCaseStr(genomeList):
-    return_str = f"import target\nfrom {target[10:-3]} import *\n\ndef test_example():\n"
+def build_test(genomeList):
+    return_str = f"import target\n\ndef test_example():\n"
     all_methodCalls = []
     # write initializer in test_file and collect method lists
     for i, genome in enumerate(genomeList):
@@ -204,42 +219,9 @@ def testCaseStr(genomeList):
         return_str += (f" # priority: {priority}\n")
     return return_str
 
-def fitness(genomeList): ## not implemented yet
-    #return fitness_score("".join(lines), testCaseStr(genomeList))
-    return 1
+def run_evolution(target_code: str) -> str:
 
+    genomeList = Generation(target_code).evolve(2, 1)
+    test_code = build_test(genomeList)
 
-def evolve(finder:ClassFinder, threshold_score, max_generation):
-    genomeList = generateGenomeList(finder.classList)
-    prev_fitness = fitness(genomeList)
-    for i in range(max_generation):
-        #print(prev_fitness)
-        if prev_fitness >= threshold_score:
-            return genomeList
-        newgenList = reproduction.generate_newgen(genomeList)
-        new_fitness = fitness(newgenList)
-        if new_fitness > prev_fitness:
-            genomeList = newgenList
-            prev_fitness = new_fitness
-    #print(prev_fitness)
-    return genomeList
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Rewrites programs.')
-    parser.add_argument('-t', '--target', required=True)
-    parser.add_argument("remaining", nargs="*")
-    args = parser.parse_args()
-
-    target = args.target
-    sys.argv[1:] = args.remaining
-
-    lines = (open(target, "r").readlines())
-    root = ast.parse("".join(lines), target)
-
-    finder = ClassFinder()
-    finder.visit(root)
-    #finder.report()
-
-    genomeList = evolve(finder, 3, 1)
-    buildTestFile(genomeList)
+    return test_code
