@@ -11,11 +11,13 @@ def cleanup():
         os.mkdir(TMP_DIR)
 
 def write_target (target_code: str, test_suite: str) : 
+    oldcwd = os.getcwd()
     os.chdir(TMP_DIR)
     with open (TARGET_FILENAME, 'w') as f: 
         f.write(target_code) 
     with open(TEST_FILENAME, 'w') as f:
         f.write(test_suite)
+    os.chdir(oldcwd)
 
 def walk(node, mutator, *args):
     if isinstance(node, list) : 
@@ -34,7 +36,7 @@ def walk(node, mutator, *args):
 
 # This rewrite the TEST_PATH as a result
 def make_testsuite () :
-
+    oldcwd = os.getcwd()
     os.chdir(TMP_DIR)
 
     lines = open(TEST_FILENAME).readlines()
@@ -83,6 +85,8 @@ def make_testsuite () :
 
     with open (TEST_PATH, 'w') as f: 
         f.write(ast.unparse(root))
+    
+    os.chdir(oldcwd)
 
 if __name__ == "__main__" :
     make_testsuite()

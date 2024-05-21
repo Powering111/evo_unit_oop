@@ -3,8 +3,9 @@ import sys
 import argparse
 import random
 import string
+import time
 import reproduction
-from ..fitness.combine import fitness_score
+from fitness.combine import fitness_score
 # 1. scanner - Find attribute, method
 # 2. function - attribute init
 # 3. method call order
@@ -15,7 +16,7 @@ from ..fitness.combine import fitness_score
 
 # Find class in target file and execute scanner
 class ClassFinder(ast.NodeVisitor):
-    def __init__(self):
+    def __init__(self):  
         self.classList = [] # list of ClassScanner
         
     def visit_ClassDef(self, node):
@@ -82,6 +83,11 @@ class MethodCall():
         for key, val in self.kwargs.items():
             arg_list.append(f"{key}={val}")
         return f".{self.method_name}({', '.join(arg_list)})"
+    
+class Assertion():
+    def __init__(self, methodcall, attr_name):
+        self.MethodCall = methodcall
+        self.attr = attr_name
 
 # Test case for a class
 class Genome(): #1:1 with an object
@@ -89,7 +95,7 @@ class Genome(): #1:1 with an object
         self.class_name = class_name
         self.init_args = args
         self.init_kwargs = kwargs
-        self.methodCall_lst:list[(MethodCall, int)] = []
+        self.methodCall_lst = [] #(methodCall, int)
     def set_methodCall_lst(self, methodCall_lst):
         self.methodCall_lst = methodCall_lst
     def add_methodcall(self, methodcall:MethodCall, priority:int):
@@ -114,10 +120,10 @@ class RandomObject():
 
 # Random sequence generator
 def RandomSequence(maxnum):
-    ret = [random.randint(1, maxnum)]
+    ret = [random.randint(0, maxnum-1)]
     while True:
         if random.randint(0, 1): # increase length by 50% chance
-            ret.append(random.randint(1, maxnum))
+            ret.append(random.randint(0, maxnum-1))
         else:
             break
     return ret
@@ -147,19 +153,26 @@ def generateGenomeList(classList):
     for classObj in classList:
         for i in range(5):
             genome = Genome(classObj.name, *RandomInit(classObj))
-            for methodName in classObj.methods.keys():
+            num_methods = len(classObj.methods)
+            for i in RandomSequence(num_methods*2+len(classObj.attributes)):
                 priority = RandomObject.rand_int()
-                genome.add_methodcall(RandomMethodCall(classObj, methodName), priority)
+                if i < num_methods:
+                    genome.add_methodcall(RandomMethodCall(classObj, list(classObj.methods)[i]), priority)
+                elif i < num_methods*2:
+                    rand_method_call =RandomMethodCall(classObj, list(classObj.methods)[i-num_methods])
+                    genome.add_methodcall(Assertion(rand_method_call, None), priority)
+                else:
+                    genome.add_methodcall(Assertion(None, list(classObj.attributes)[i-2*num_methods]), priority)
             genomeList.append(genome)
     return genomeList
 
-def buildTestFile(targetName, genomeList):    
+def buildTestFile(genomeList):    
     # Create Test file
     # Run `python evolution/evolution.py -t testcases/dummy.py`
-    f = open("testcases/testsuites/"+targetName+"_test.py", "w")
+    f = open("testcases/testsuites/"+target[10:-3]+"_test.py", "w")
     f.write("import pytest\n\n")
     f.write("import target\n")
-    f.write(f"from {targetName} import *\n\n")
+    f.write(f"from {target[10:-3]} import *\n\n")
     f.write("def test_example():\n")
     all_methodCalls = []
     # write initializer in test_file and collect method lists
@@ -170,24 +183,33 @@ def buildTestFile(targetName, genomeList):
     all_methodCalls.sort(key=lambda tup: tup[2])
     # write method calls in test_file
     for i, methodCall, priority in all_methodCalls:
-        f.write(f"    obj_{genome.class_name}{i}{methodCall.call_str()}")
+        if isinstance(methodCall, MethodCall):
+            f.write(f"    obj_{genome.class_name}{i}{methodCall.call_str()}")
+        elif isinstance(methodCall, Assertion):
+            if methodCall.attr != None:
+                f.write(f"    #assert obj_{genome.class_name}{i}.{methodCall.attr} == ")
+            elif methodCall.MethodCall != None:
+                f.write(f"    #assert obj_{genome.class_name}{i}{methodCall.MethodCall.call_str()} == ")
         f.write(f" # priority: {priority}\n")
 
 def testCaseStr(genomeList):
-    '''all_methodCalls = []
+    return_str = f"import pytest\n\nimport target\nfrom {target[10:-3]} import *\n\ndef test_example():\n"
+    all_methodCalls = []
     # write initializer in test_file and collect method lists
     for i, genome in enumerate(genomeList):
-        f.write(f"    obj_{genome.class_name}{i} = target.{genome.class_name}({', '.join(str(arg) for arg in genome.init_args)}) \n")
+        return_str += (f"    obj_{genome.class_name}{i} = target.{genome.class_name}({', '.join(str(arg) for arg in genome.init_args)}) \n")
         for methodCall, priority in genome.methodCall_lst:
             all_methodCalls.append((i, methodCall, priority))
     all_methodCalls.sort(key=lambda tup: tup[2])
     # write method calls in test_file
     for i, methodCall, priority in all_methodCalls:
-        f.write(f"    obj_{genome.class_name}{i}{methodCall.call_str()}")
-        f.write(f" # priority: {priority}\n")
-'''
+        return_str += (f"    obj_{genome.class_name}{i}{methodCall.call_str()}")
+        return_str += (f" # priority: {priority}\n")
+    return return_str
+
 def fitness(genomeList): ## not implemented yet
-    fitness_score(lines)
+    #return fitness_score("".join(lines), testCaseStr(genomeList))
+    return 1
 
 
 def evolve(finder:ClassFinder, threshold_score, max_generation):
@@ -224,5 +246,6 @@ if __name__ == '__main__':
     finder.visit(root)
     finder.report()
 
-    genomeList = evolve(finder, 95, 20)
-    buildTestFile(target[10:-3], genomeList)
+    genomeList = evolve(finder, 3, 1)
+    print(genomeList)
+    buildTestFile(genomeList)

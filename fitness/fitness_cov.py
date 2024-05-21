@@ -12,6 +12,7 @@ def get_coverage () -> dict:
 
     # run coverage.py
     # are there something in windows like /tmp that is not ./tmp ???
+    oldcwd = os.getcwd()
     os.chdir(helper.TMP_DIR)
     
     sp.run(f"coverage run --branch -m pytest {helper.TEST_PATH}", shell=True, check=True, capture_output=True)
@@ -26,6 +27,7 @@ def get_coverage () -> dict:
     target_result = [file for file in result_obj['files'] if file.split('/')[-1] == helper.TARGET_FILENAME]
     assert len(target_result) == 1
 
+    os.chdir(oldcwd)
     return result_obj['files'][target_result[0]]
 
 def parse_coverage (cov) :
