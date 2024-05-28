@@ -2,10 +2,10 @@ import ast
 import sys
 import random
 import string
-import time
 from evolution import reproduction
-import pathlib
 from fitness.combine import fitness_score
+
+POP_SIZE = 5
 
 # Find class in target file and execute scanner
 class ClassFinder(ast.NodeVisitor):
@@ -121,7 +121,7 @@ class Genome(): #1:1 with an object
     def add_methodcall(self, methodcall, priority: int):
         self.methodCall_lst.append((methodcall, priority))
 
-    def __repr__(self):
+    def __str__(self):
         meta = f"genome for {self.class_name}: a={self.init_args} kw={self.init_kwargs}"
         gene = "\n\t".join(str(mc) for mc in self.methodCall_lst)
         return meta + '\n\t' + gene
@@ -181,6 +181,9 @@ def RandomMethodCall(Class:ClassScanner, method_name:str):
             args.append(getattr(RandomObject, f"rand_{arg_type}")())
     return MethodCall(method_name, *args)
 
+def sort_pop (pop) :
+    return sorted(pop, key=lambda x: -x[1])
+
 class Generation():
     def __init__(self, target_code: str):
         self.finder = ClassFinder()
@@ -193,21 +196,32 @@ class Generation():
         score = fitness_score(self.target_code, test_code)
         return score
 
+    def make_pop (self, pop) :
+        fit = [self.get_fitness(p) for p in pop]
+        return list(zip(pop, fit))
+
+    def recalculate_fitness(self, pop): 
+        pop = [p[0] for p in pop]
+        fit = [self.get_fitness(p) for p in pop]
+        return list(zip(pop, fit))
+
     def evolve(self, threshold_score: float, max_generation: int) -> list[Genome]:
-        genomeList = generateGenomeList(self.finder.classList)
-        prev_fitness = self.get_fitness(genomeList)
+        pop = generatePopulation(self.finder.classList)
+        pop = self.make_pop(pop)
+        # pop = sort_pop(pop)
         for _ in range(max_generation):
-            print(f"fitness: {prev_fitness}")
-            if prev_fitness >= threshold_score:
-                return genomeList
-            newgenList = reproduction.generate_newgen(genomeList)
-            reproduction.mutate(newgenList)
-            new_fitness = self.get_fitness(newgenList)
-            if new_fitness > prev_fitness:
-                genomeList = newgenList
-                prev_fitness = new_fitness
-        print(f"fitness: {prev_fitness}")
-        return genomeList
+            pop = reproduction.generate_newgen(pop)
+            pop = reproduction.mutate(pop)
+            pop = self.recalculate_fitness(pop)
+            pop = sort_pop(pop)
+            pop = pop[:POP_SIZE]
+
+            print("leading fitness: ", pop[0][1])
+
+            if pop[0][1] > threshold_score : break
+
+
+        return pop[0][0]
 
 def generateGenomeList(classList):
     genomeList = []
@@ -231,6 +245,9 @@ def generateGenomeList(classList):
                     genome.add_methodcall(Assertion(None, list(classObj.attributes)[i-num_methods]), priority)
             genomeList.append(genome)
     return genomeList
+
+def generatePopulation (arg):
+    return [generateGenomeList(arg) for _ in range(POP_SIZE)]
 
 def build_test(genomeList):
     return_str = f"import target\n\ndef test_example():\n"
