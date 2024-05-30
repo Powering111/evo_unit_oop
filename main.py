@@ -1,15 +1,19 @@
 import sys
 import argparse
 import pathlib
+from collections import defaultdict
 from evolution import evolution 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Rewrites programs.')
     parser.add_argument('-t', '--target', required=True)
+    #parser.add_argument('-c', '--targetClass', required=True)
     parser.add_argument("remaining", nargs="*")
     args = parser.parse_args()
 
     target = pathlib.Path(args.target)
+    #target_class = args.targetClass
+    #print(target_class, type(target_class))
     # check validity of the target
     if target.suffix != '.py':
         parser.error('Argument error: target has to be .py file')
@@ -23,7 +27,9 @@ if __name__ == '__main__':
 
     path_to_write = (target.parent / "testsuites" / f"test_{target.stem}.py")
     print(path_to_write)
-    print(final_test_code)
+    #print(final_test_code)
     with open(path_to_write, 'w') as f:
         f.write(final_test_code)
 
+    my_dict = defaultdict(int)
+    print(my_dict[0])
