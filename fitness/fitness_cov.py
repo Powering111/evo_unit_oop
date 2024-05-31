@@ -11,7 +11,6 @@ from . import helper
 def get_coverage () -> dict:
 
     # run coverage.py
-    # are there something in windows like /tmp that is not ./tmp ???
     oldcwd = os.getcwd()
     os.chdir(helper.TMP_DIR)
     

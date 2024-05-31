@@ -34,12 +34,12 @@ def fitness_score (target_code: str, test_suite: str, verbose = False) -> float 
     fitness /= 3
     if not time : # can get as much as 0.5 
         fitness = fitness / 1.41
-        fitness = 1 - ((1 - fitness) ** (1.0 / length))
+        # fitness = 1 - ((1 - fitness) ** (1.0 / length))
         fitness = fitness / 1.41
     else: 
         time = max(time/10, 1)
         fitness = 1 - ((1 - fitness) ** (1.0 / time))
-        fitness = 1 - ((1 - fitness) ** (1.0 / length))
+        # fitness = 1 - ((1 - fitness) ** (1.0 / length))
 
     log("fitness: ", fitness)
     return fitness

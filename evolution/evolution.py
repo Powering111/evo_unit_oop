@@ -2,10 +2,11 @@ import ast
 import sys
 import random
 import string
+import numpy as np
 from evolution import reproduction
 from fitness.combine import fitness_score
 
-POP_SIZE = 5
+POP_SIZE = 10
 
 # Find class in target file and execute scanner
 class ClassFinder(ast.NodeVisitor):
@@ -128,14 +129,36 @@ class Genome(): #1:1 with an object
 
 
 # Random object generator
+USE_USED_RATIO = 0.6 # 60% of selecting used constant
+USED_LIST_SIZE = 20 # reempty the used list after reaching 20 constants
+USED_INT = []
+USED_FLOAT = []
+USED_STRING = []
 class RandomObject():
     def rand_int():
-        return random.randint(-sys.maxsize - 1, sys.maxsize)
+        global USED_INT
+        if len(USED_INT) != 0 and random.random() < USE_USED_RATIO: 
+            return random.choice(USED_INT)
+        if len(USED_INT) > USED_LIST_SIZE: 
+            USED_INT = []
+        ret = int(np.random.default_rng().normal())
+        USED_INT.append(ret)
+        return ret
 
     def rand_float():
-        return random.uniform(-sys.maxsize - 1, sys.maxsize)
+        global USED_FLOAT
+        if len(USED_FLOAT) != 0 and random.random() < USE_USED_RATIO: 
+            return random.choice(USED_FLOAT)
+        if len(USED_FLOAT) > USED_LIST_SIZE: 
+            USED_FLOAT = []
+        ret = np.random.default_rng().normal()
+        USED_FLOAT.append(ret)
+        return ret
 
     def rand_str():
+        global USED_STRING
+        if len(USED_STRING) != 0 and random.random() < USE_USED_RATIO: 
+            return random.choice(USED_STRING)
         return_str = random.choice(string.ascii_letters + string.digits)
         for _ in range(100):
             if random.randint(0, 10) < 9:
@@ -143,7 +166,11 @@ class RandomObject():
                                             string.digits)
             else:
                 break
-        return f'"{return_str}"'
+        if len(USED_STRING) > USED_LIST_SIZE: 
+            USED_STRING = []
+        ret = f'"{return_str}"'
+        USED_STRING.append(ret)
+        return ret
 
     def rand_bool():
         return bool(random.randint(0, 1))
@@ -208,7 +235,7 @@ class Generation():
     def evolve(self, threshold_score: float, max_generation: int) -> list[Genome]:
         pop = generatePopulation(self.finder.classList)
         pop = self.make_pop(pop)
-        # pop = sort_pop(pop)
+        pop = sort_pop(pop)
         for _ in range(max_generation):
             pop = reproduction.generate_newgen(pop)
             pop = reproduction.mutate(pop)
@@ -219,7 +246,6 @@ class Generation():
             print("leading fitness: ", pop[0][1])
 
             if pop[0][1] > threshold_score : break
-
 
         return pop[0][0]
 
