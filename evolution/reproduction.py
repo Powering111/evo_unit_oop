@@ -3,55 +3,40 @@ import sys
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .evolution import Genome as Genome
+    from .evolve import Genome as Genome
 
 import sys
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .evolution import Genome as Genome
+    from .evolve import Genome as Genome
+
+def reproduce(lst1, lst2):
+    cross_point1 = random.randrange(1, len(lst1[0])+1)
+    cross_point2 = random.randrange(1, len(lst2[0])+1)
+    return (lst1[0][:cross_point1]+lst2[0][cross_point2:], 0)
 
 
-def mix_init(genome1: "Genome", genome2: "Genome") -> "Genome":
-    return genome1 if bool(random.getrandbits(1)) else genome2
-
-
-def crossover(lst1: list["Genome"], lst2: list["Genome"]):
-    cross_point1 = random.randrange(0, len(lst1)+1)
-    cross_point2 = random.randrange(0, len(lst2)+1)
-    return lst1[:cross_point1]+lst2[cross_point2:]
-
-
-def reproduce(genome1: "Genome", genome2: "Genome"):
-    kid_genome = mix_init(genome1, genome2)
-    kid_genome.set_methodCall_lst(
-        crossover(genome1.methodCall_lst, genome2.methodCall_lst))
-    return kid_genome
-
-
-def generate_newgen(prevgen: list["Genome"]) -> list["Genome"]:
+def generate_newgen(prevgen):
     newgen = []
-    for i in range(len(prevgen)):
+    for _ in range(2*len(prevgen)):
         mom = prevgen[random.randrange(0, len(prevgen))]
         dad = prevgen[random.randrange(0, len(prevgen))]
         newgen.append(reproduce(mom, dad))
     return newgen
 
 
-# MUTATE HOW 20% of the population
+# MUTATE 20% of the population
 MUTATION_PROB = 0.2
 # EACH MUTATION WILL YIELD DIFFERENCE OF 10%
 MUTATION_SEVERITY = 0.1
 
 
-def mutate(genomeList: list["Genome"]) -> list["Genome"]:
-    for i, _ in enumerate(genomeList):
+def mutate(population):
+    for i, _ in enumerate(population):
         if random.random() < MUTATION_PROB:
-            mutate_methodCall(genomeList[i].methodCall_lst)
-    return genomeList
+            mutate_gene(population[i])
+    return population
 
-def mutate_methodCall(methodCalls: list):
-    for i, mc in enumerate(methodCalls):
-        if random.random() < MUTATION_SEVERITY:
-            priority = random.randint(-sys.maxsize - 1, sys.maxsize)
-            methodCalls[i] = (mc[0], priority)
+def mutate_gene(gene): # TODO
+    return gene

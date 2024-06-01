@@ -19,7 +19,7 @@ class Rectangle:
     # x,y is the cartesian coordinate of bottom left corner of this rectangle.
     def __init__(self, x:float, y:float, width:float, height:float):
         if width<=0 or height<=0:
-            raise InvalidArgumentException
+            pass
         self.x=x
         self.y=y
         self.width=width
