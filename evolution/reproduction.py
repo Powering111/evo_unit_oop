@@ -5,11 +5,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .evolve import Genome as Genome
 
-import sys
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from .evolve import Genome as Genome
 
 def reproduce(lst1, lst2):
     cross_point1 = random.randrange(1, len(lst1[0])+1)

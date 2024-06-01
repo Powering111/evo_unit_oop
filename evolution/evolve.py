@@ -4,62 +4,12 @@ import random
 from evolution.random_object import RandomObject
 from evolution.scanner import ClassScanner
 from evolution.scanner import ClassFinder
+from evolution.genome import Genome
+from evolution.testCase import *
 from evolution import reproduction
 from fitness.combine import fitness_score
 
 POP_SIZE = 5 
-
-# method call code string
-class MethodCall():
-    def __init__(self, class_name, method_name, *args, **kwargs):
-        self.method_name = method_name
-        self.class_name = class_name
-        self.args = args
-        self.kwargs = kwargs
-
-    def call_str(self):
-        arg_list = []
-        for arg in self.args:
-            arg_list.append(str(arg))
-        for key, val in self.kwargs.items():
-            arg_list.append(f"{key}={val}")
-        return f".{self.method_name}({', '.join(arg_list)})"
-
-class Assertion():
-    def __init__(self, class_name, methodcall, attr_name):
-        self.class_name = class_name
-        self.MethodCall = methodcall
-        self.attr = attr_name
-
-# Test case for a class
-class Genome(): #1:1 with an object
-    def __init__(self, class_name, *args, **kwargs):
-        self.class_name = class_name
-        self.init_args = args
-        self.init_kwargs = kwargs
-        self.methodCall_lst = [] #(methodCall/Assertion, int)
-    def set_methodCall_lst(self, methodCall_lst):
-        self.methodCall_lst = methodCall_lst
-
-    def add_methodcall(self, methodcall, priority: int):
-        self.methodCall_lst.append((methodcall, priority))
-
-    def __str__(self):
-        meta = f"genome for {self.class_name}: a={self.init_args} kw={self.init_kwargs}"
-        gene = "\n\t".join(str(mc) for mc in self.methodCall_lst)
-        return meta + '\n\t' + gene
-
-# Generate MethodCall object with random values
-def RandomMethodCall(Class:ClassScanner, method_name:str, rand_device:RandomObject):
-    method_args = Class.method_args[method_name]
-    args = list()
-    for arg_name, arg_type in method_args.items():
-        if arg_type == "Self":
-            i = random.randrange(0, 5)
-            args.append(f"obj_{Class.name}{i}")
-        else:
-            args.append(getattr(rand_device, f"rand_{arg_type}")())
-    return MethodCall(Class.name, method_name, *args)
 
 def sort_pop (pop) :
     return sorted(pop, key=lambda x: -x[1])
@@ -112,4 +62,20 @@ def run_evolution(target_code: str, threshold_score: float = 0.8, max_generation
     genomeList = Generation(target_code).evolve(threshold_score, max_generation)
     test_code = build_test(genomeList)
 
+    return test_code
+
+
+def run_once(target_code: str) -> str:
+    finder = ClassFinder()
+    finder.visit(ast.parse(target_code))
+    test_code = "import target\n"
+    for classObj in finder.classList:
+        # unittest
+        tclist = generate_UnitTestCase_List(finder.classList, classObj)
+        test_code += build_UnitTestCases(tclist)
+        for classObj2 in finder.classList:
+            if classObj.required_object_count[classObj2.name] == 0: continue
+            # pairwise testing
+            tclist = generate_PairwiseTestCase_List(finder.classList, classObj, classObj2)
+            test_code += build_PairwiseTestCases(tclist)
     return test_code
