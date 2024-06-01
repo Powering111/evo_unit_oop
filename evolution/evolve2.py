@@ -55,59 +55,6 @@ class Generation():
 
         return pop[0][0]
 
-def generateGenomeList(classList):
-    genomeList = []
-    rand_device = RandomObject()
-    for classObj in classList:
-        # don't consider empty class
-        for i in range(5):
-            genome = Genome(classObj.name, *RandomObject.RandomInit(classObj, rand_device))
-            num_methods = len(classObj.method_args)
-            for i in RandomObject.RandomSequence(num_methods+len(classObj.attributes)):
-                priority = random.randint(-sys.maxsize - 1, sys.maxsize)
-                if i < num_methods:
-                    if list(classObj.method_return.values())[i] != None:
-                        rand_method_call =RandomMethodCall(classObj, list(classObj.method_args,)[i], rand_device)
-                        genome.add_methodcall(Assertion(classObj.name, rand_method_call, None), priority)
-                    else:
-                        genome.add_methodcall(RandomMethodCall(classObj, list(classObj.method_args)[i], rand_device), priority)
-                else:
-                    genome.add_methodcall(Assertion(classObj.name, None, list(classObj.attributes)[i-num_methods]), priority)
-            genomeList.append(genome)
-    return genomeList
-
-def generatePopulation (classList):
-    return [generateGenomeList(classList) for _ in range(POP_SIZE)]
-
-def build_test(genomeList):
-    return_str = f"import target\n\ndef test_example():\n"
-    all_methodCalls = []
-    # write initializer and collect method lists
-    for i, genome in enumerate(genomeList):
-        return_str += (f"    obj_{genome.class_name}{i} = target.{genome.class_name}({', '.join(str(arg) for arg in genome.init_args)}) \n")
-        for methodCall, priority in genome.methodCall_lst:
-            all_methodCalls.append((i, methodCall, priority))
-            #print(i, methodCall.class_name)
-    all_methodCalls.sort(key=lambda tup: tup[2])
-
-    # write method calls in test_file
-    count = 0
-
-    for (i, methodCall, priority) in all_methodCalls:
-        #print(i, methodCall.class_name)
-        if isinstance(methodCall, MethodCall):
-            return_str += (f"    obj_{methodCall.class_name}{i}{methodCall.call_str()}")
-        elif isinstance(methodCall, Assertion):
-            if methodCall.attr != None:
-                return_str += (f"    test{count} = obj_{methodCall.class_name}{i}.{methodCall.attr}\n")
-                return_str +=(f"    assert test{count} == test{count}")
-                count +=1
-            elif methodCall.MethodCall != None:
-                return_str += (f"    test{count} = obj_{methodCall.class_name}{i}{methodCall.MethodCall.call_str()}\n")
-                return_str +=(f"    assert test{count} == test{count}")
-                count+=1
-        return_str += (f" # priority: {priority}\n")
-    return return_str
 
 def run_evolution(target_code: str, threshold_score: float = 0.8, max_generation: int = 10) -> str:
 
@@ -141,10 +88,12 @@ if __name__ == '__main__':
     finder.visit(ast.parse(target_code))
     test_code = "import target\n"
     for classObj in finder.classList:
+        # unittest
         tclist = generate_UnitTestCase_List(finder.classList, classObj)
         test_code += build_UnitTestCases(tclist)
         for classObj2 in finder.classList:
             if classObj.required_object_count[classObj2.name] == 0: continue
+            # pairwise testing
             tclist = generate_PairwiseTestCase_List(finder.classList, classObj, classObj2)
             test_code += build_PairwiseTestCases(tclist)
     
