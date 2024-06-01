@@ -12,6 +12,8 @@ class RandomObject():
         self.prev_str = []
 
     def prev_or_new(self, type, randfunc):
+        # when random function is called, either previous values generated can be 
+        # reused or a random value can be newly generated
         prev_list = getattr(self, f"prev_{type}")
         if self.object_count[type] != 0 and type not in ['int', 'float', 'str', 'bool']:
             rand_index = random.randint(1, self.object_count[type])

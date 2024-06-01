@@ -10,6 +10,8 @@ class ClassFinder(ast.NodeVisitor):
     def visit_ClassDef(self, node):
         newClass = ClassScanner().visit(node)
         self.classList.append(newClass)
+        # add rand_{class_name} method to RandomObject module 
+        # so an instance of this class can be randomly generated
         setattr(RandomObject, f"prev_{newClass.name}", [])
         def rand_newClass(randself): 
             def randfunc():
