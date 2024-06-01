@@ -62,11 +62,11 @@ def build_UnitTestCases(TestCaseList):
             elif isinstance(methodCall, Assertion):
                 if methodCall.attr != None:
                     return_str += (f"    test{count} = {main_obj_name}.{methodCall.attr}\n")
-                    return_str +=(f"    assert test{count} == test{count}")
+                    return_str +=(f"    assert test{count} == test{count}\n")
                     count +=1
                 elif methodCall.MethodCall != None:
                     return_str += (f"    test{count} = {main_obj_name}{methodCall.MethodCall.call_str()}\n")
-                    return_str +=(f"    assert test{count} == test{count}")
+                    return_str +=(f"    assert test{count} == test{count}\n")
                     count+=1
     return return_str + "\n\n"
 
@@ -132,10 +132,10 @@ def build_PairwiseTestCases(TestCaseList):
             elif isinstance(methodCall, Assertion):
                 if methodCall.attr != None:
                     return_str += (f"    test{count} = {main_obj_name}.{methodCall.attr}\n")
-                    return_str +=(f"    assert test{count} == test{count}")
+                    return_str +=(f"    assert test{count} == test{count}\n")
                     count +=1
                 elif methodCall.MethodCall != None:
                     return_str += (f"    test{count} = {main_obj_name}{methodCall.MethodCall.call_str()}\n")
-                    return_str +=(f"    assert test{count} == test{count}")
+                    return_str +=(f"    assert test{count} == test{count}\n")
                     count+=1
     return return_str + "\n\n"
