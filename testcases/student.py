@@ -30,7 +30,7 @@ class Class:
         return Index(len(self.students))
     
     def get_student(self,index: Index)->Student:
-        return self.students[index-1]
+        return self.students[int(index)-1]
     
     # find student by name and return the index
     # return 0 if no student
