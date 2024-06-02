@@ -17,7 +17,12 @@ def get_coverage () -> dict:
     oldcwd = os.getcwd()
     os.chdir(helper.TMP_DIR)
     try:
-        sp.run(f"coverage run --branch -m pytest {helper.TEST_PATH}", shell=True, check=True, capture_output=True)
+        if helper.USE_PYTEST:
+            cmd=f"coverage run --branch -m pytest {helper.TEST_PATH}"
+        else:
+            cmd=f"coverage run --branch {helper.TEST_PATH}"
+
+        sp.run(cmd, shell=True, check=True, capture_output=True)
     except sp.CalledProcessError as e:
         #print("coverage measurement failed")
         #print(e.stdout.decode())

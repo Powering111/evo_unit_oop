@@ -16,3 +16,6 @@ TEST_FILENAME = 'test_target.py'
 
 TARGET_PATH = os.path.join(TMP_DIR, TARGET_FILENAME)
 TEST_PATH = os.path.join(TMP_DIR, TEST_FILENAME)
+
+DO_MUTATION_TESTING = False
+USE_PYTEST = False
