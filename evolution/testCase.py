@@ -49,7 +49,7 @@ def generate_UnitTestCase_List(classList, classObj):
 
 def build_UnitTestCases(TestCaseList):
     class_name = TestCaseList[0].main_obj.class_name
-    return_str = f"### unit testing for class {class_name}\n"
+    return_str = f"### unit testing for {class_name}\n"
     for i, testCase in enumerate(TestCaseList, start=1):
         return_str += f"\ndef test_{class_name}{i}():\n" 
         main_obj_name = "main_obj"
@@ -73,11 +73,11 @@ def build_UnitTestCases(TestCaseList):
             elif isinstance(methodCall, Assertion):
                 if methodCall.attr != None:
                     return_str += (f"    test{count} = {main_obj_name}.{methodCall.attr}\n")
-                    return_str +=(f"    assert test{count} == test{count}")
+                    return_str +=(f"    assert test{count} == test{count}\n")
                     count +=1
                 elif methodCall.MethodCall != None:
                     return_str += (f"    test{count} = {main_obj_name}{methodCall.MethodCall.call_str()}\n")
-                    return_str +=(f"    assert test{count} == test{count}")
+                    return_str +=(f"    assert test{count} == test{count}\n")
                     count+=1
     return return_str + "\n\n"
 
@@ -121,7 +121,7 @@ def generate_PairwiseTestCase_List(classList, classObj1, classObj2):
 def build_PairwiseTestCases(TestCaseList):
     class_name1 = TestCaseList[0].main_obj1.class_name
     class_name2 = TestCaseList[0].main_obj2.class_name
-    return_str = f"### pairwise testing for class {class_name1} and {class_name2}\n"
+    return_str = f"### pairwise testing for {class_name1} and {class_name2}\n"
     for i, testCase in enumerate(TestCaseList, start=1):
         # declare function
         return_str += f"\ndef test_{class_name1}_{class_name2}{i}():\n" 
@@ -155,10 +155,12 @@ def build_PairwiseTestCases(TestCaseList):
             elif isinstance(methodCall, Assertion):
                 if methodCall.attr != None:
                     return_str += (f"    test{count} = {main_obj_name}.{methodCall.attr}\n")
-                    return_str +=(f"    assert test{count} == test{count}")
+                    return_str +=(f"    assert test{count} == test{count}\n")
                     count +=1
                 elif methodCall.MethodCall != None:
                     return_str += (f"    test{count} = {main_obj_name}{methodCall.MethodCall.call_str()}\n")
-                    return_str +=(f"    assert test{count} == test{count}")
+                    return_str +=(f"    assert test{count} == test{count}\n")
                     count+=1
     return return_str + "\n\n"
+
+

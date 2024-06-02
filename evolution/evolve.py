@@ -2,114 +2,94 @@ import ast
 import sys
 import random
 from evolution.random_object import RandomObject
-from evolution.scanner import ClassScanner
-from evolution.scanner import ClassFinder
-from evolution import reproduction
+from evolution.scanner import *
+from evolution.testCase import *
+from evolution.genome import *
+from evolution.testSuite import *
+from evolution.reproduction import *
+
 from fitness.combine import fitness_score
+import argparse
+import pathlib
 
-POP_SIZE = 5 
 
-# method call code string
-class MethodCall():
-    def __init__(self, class_name, method_name, *args, **kwargs):
-        self.method_name = method_name
-        self.class_name = class_name
-        self.args = args
-        self.kwargs = kwargs
-
-    def call_str(self):
-        arg_list = []
-        for arg in self.args:
-            arg_list.append(str(arg))
-        for key, val in self.kwargs.items():
-            arg_list.append(f"{key}={val}")
-        return f".{self.method_name}({', '.join(arg_list)})"
-
-class Assertion():
-    def __init__(self, class_name, methodcall, attr_name):
-        self.class_name = class_name
-        self.MethodCall = methodcall
-        self.attr = attr_name
-
-# Test case for a class
-class Genome(): #1:1 with an object
-    def __init__(self, class_name, *args, **kwargs):
-        self.class_name = class_name
-        self.init_args = args
-        self.init_kwargs = kwargs
-        self.methodCall_lst = [] #(methodCall/Assertion, int)
-    def set_methodCall_lst(self, methodCall_lst):
-        self.methodCall_lst = methodCall_lst
-
-    def add_methodcall(self, methodcall, priority: int):
-        self.methodCall_lst.append((methodcall, priority))
-
-    def __str__(self):
-        meta = f"genome for {self.class_name}: a={self.init_args} kw={self.init_kwargs}"
-        gene = "\n\t".join(str(mc) for mc in self.methodCall_lst)
-        return meta + '\n\t' + gene
-
-# Generate MethodCall object with random values
-def RandomMethodCall(Class:ClassScanner, method_name:str, rand_device:RandomObject):
-    method_args = Class.method_args[method_name]
-    args = list()
-    for arg_name, arg_type in method_args.items():
-        if arg_type == "Self":
-            i = random.randrange(0, 5)
-            args.append(f"obj_{Class.name}{i}")
-        else:
-            args.append(getattr(rand_device, f"rand_{arg_type}")())
-    return MethodCall(Class.name, method_name, *args)
-
-def sort_pop (pop) :
-    return sorted(pop, key=lambda x: -x[1])
-
-class Generation():
+class Evolution():
     def __init__(self, target_code: str):
         self.finder = ClassFinder()
         self.finder.visit(ast.parse(target_code))
-        self.finder.report() # debug
         self.target_code = target_code
+    def evolution(self, threshold_score: float, max_generation: int):
+        test_code = ""
+        for classObj in self.finder.classList:
+            # unittest
+            gen = Generation(self.target_code, self.finder, True, classObj)
+            test_code += build_UnitTestCases(gen.evolve(threshold_score, max_generation))
+        for classObj1 in self.finder.classList:
+            for classObj2 in self.finder.classList:
+                if classObj.required_object_count[classObj2.name] == 0: continue
+                # pairwise testing
+                gen = Generation(self.target_code, self.finder, False, classObj1, classObj2)
+                test_code += build_PairwiseTestCases(gen.evolve(threshold_score, max_generation))
+        return test_code
 
-    def get_fitness(self, genomeList: list[Genome]) -> float:
-        test_code = build_test(genomeList)
-        score = fitness_score(self.target_code, test_code)
-        return score
-
-    def make_pop (self, pop) :
-        fit = [self.get_fitness(p) for p in pop]
-        return list(zip(pop, fit))
-
-    def recalculate_fitness(self, pop): 
-        pop = [p[0] for p in pop]
-        fit = [self.get_fitness(p) for p in pop]
-        return list(zip(pop, fit))
+class Generation():
+    def __init__(self, target_code: str, finder, is_unit, classObj1, classObj2=None):
+        print(classObj1.name)
+        self.target_code = target_code
+        self.current_population = [] # (testsuite, fitness)
+        for _ in range(10):
+            newTestSuite = TestSuite(is_unit)
+            newTestSuite.random_testCaseList(finder.classList, classObj1, classObj2)
+            test_code = newTestSuite.build_testcases()
+            fitness = fitness_score(self.target_code, test_code)
+            print(test_code)
+            print(fitness)
+            self.current_population.append((newTestSuite, fitness))
+        
+    def next_generation(self):
+        for i in range(5, 10):
+            new_testCase = reproduce_testSuite(self.current_population[:5])
+            test_code = new_testCase.build_testcases()
+            fitness = fitness_score(self.target_code, test_code)
+            self.current_population[i] = (new_testCase, fitness)
+        self.current_population.sort(key=lambda tup: tup[1], reverse=True)
 
     def evolve(self, threshold_score: float, max_generation: int) -> list[Genome]:
-        pop = generatePopulation(self.finder.classList)
-        pop = self.make_pop(pop)
-        # pop = sort_pop(pop)
-        for _ in range(max_generation):
-            pop = reproduction.generate_newgen(pop)
-            pop = reproduction.mutate(pop)
-            pop = self.recalculate_fitness(pop)
-            pop = sort_pop(pop)
-            pop = pop[:POP_SIZE]
-
-            print("leading fitness: ", pop[0][1])
-
-            if pop[0][1] > threshold_score : break
-            
-        return pop[0][0]
-
-def generatePopulation (classList):
-    return [generateGenomeList(classList) for _ in range(POP_SIZE)]
+        for i in range(max_generation):
+            print("top:", self.current_population[0][1])
+            if self.current_population[0][1] > threshold_score:
+                break
+            self.next_generation()
+        return self.current_population[0][0].testCaselist
 
 
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Rewrites programs.')
+    parser.add_argument('-t', '--target', required=True)
+    #parser.add_argument('-c', '--targetClass', required=True)
+    parser.add_argument("remaining", nargs="*")
+    args = parser.parse_args()
 
-def run_evolution(target_code: str, threshold_score: float = 0.8, max_generation: int = 10) -> str:
+    target = pathlib.Path(args.target)
+    #target_class = args.targetClass
+    #print(target_class, type(target_class))
+    # check validity of the target
+    if target.suffix != '.py':
+        parser.error('Argument error: target has to be .py file')
+    if not (target.exists() and target.is_file()):
+        parser.error('Argument error: target has to be an existing file')
 
-    genomeList = Generation(target_code).evolve(threshold_score, max_generation)
-    test_code = build_test(genomeList)
+    sys.argv[1:] = args.remaining
 
-    return test_code
+    target_code = target.read_text()
+    path_to_write = (target.parent / "testsuites" / f"test_{target.stem}.py")
+
+    
+    test_code = "import hello as target\n"
+    test_code += Evolution(target_code).evolution(0.9, 10)
+    
+    with open(path_to_write, 'w') as f:
+        f.write(test_code)
+
+    #score = fitness_score(target_code, test_code)
+    #print(score)
