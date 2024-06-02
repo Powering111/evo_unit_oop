@@ -14,6 +14,7 @@ import pathlib
 
 def fitness_score(target_code, test_Suite, class_name1, class_name2):
     test_code = test_Suite.build_testcases()
+    #print(test_code)
     fitness_score = fitness_score_by_class(target_code, test_code)
     #print(fitness_score)
     if class_name2 == None: 
@@ -72,19 +73,3 @@ class Generation():
                 break
             self.next_generation()
         return self.current_population[0][0].testCaselist
-
-
-def run_once(target_code: str) -> str:
-    finder = ClassFinder()
-    finder.visit(ast.parse(target_code))
-    test_code = "import target\n"
-    for classObj in finder.classList:
-        # unittest
-        tclist = generate_UnitTestCase_List(finder.classList, classObj)
-        test_code += build_UnitTestCases(tclist)
-        for classObj2 in finder.classList:
-            if classObj.required_object_count[classObj2.name] == 0: continue
-            # pairwise testing
-            tclist = generate_PairwiseTestCase_List(finder.classList, classObj, classObj2)
-            test_code += build_PairwiseTestCases(tclist)
-    return test_code

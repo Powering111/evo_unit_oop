@@ -58,10 +58,12 @@ def mutate_int(i):
 def mutate_str(str):
     if random.random() > MUTATION_PROB: return str
     index=random.random()
-    if index < 0.2: return str[1:]
-    elif index < 0.4: return str[:-1]
-    elif index < 0.6: return crossover(str, str)
-    else: return RandomObject().rand_str
+    str = str.replace("\"","")
+    if index < 0.2: str = str[1:]
+    elif index < 0.4: str = str[:-1]
+    elif index < 0.6: str = crossover(str, str)
+    else: str = RandomObject().rand_str
+    return str
 
 def mutate_float(f):
     if random.random() > MUTATION_PROB: return f
