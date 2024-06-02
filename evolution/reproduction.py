@@ -42,8 +42,6 @@ def reproduce_testSuite(prevgen_testSuites):
 
 # MUTATE 30% of the population
 MUTATION_PROB = 0.3
-# EACH MUTATION WILL YIELD DIFFERENCE OF 30%
-MUTATION_SEVERITY = 0.3
 
 def mutate_int(i):
     if random.random() > MUTATION_PROB: return i
@@ -62,7 +60,7 @@ def mutate_str(str):
     if index < 0.2: return_str = str[1:]
     elif index < 0.4: return_str = str[:-1]
     elif index < 0.6: return_str = crossover(str, str)
-    else: return_str = RandomObject().rand_str
+    else: return RandomObject().rand_str()
     return f'"{return_str}"'
 
 def mutate_float(f):
