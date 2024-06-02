@@ -16,7 +16,7 @@ class ClassFinder(ast.NodeVisitor):
         def rand_newClass(randself): 
             def randfunc():
                 attrs = RandomObject.RandomInit(newClass, randself) ## maybe change to re-initialized random device
-                return f"target.{newClass.name}({",".join(str(x) for x in attrs)})"
+                return f"target.{newClass.name}({','.join(str(x) for x in attrs)})"
             return getattr(randself, "prev_or_new")(newClass.name, randfunc)
         setattr(RandomObject, f"rand_{newClass.name}", rand_newClass)
 
