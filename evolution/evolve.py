@@ -12,6 +12,8 @@ from fitness.combine import fitness_score
 import argparse
 import pathlib
 
+def fitness_score(tc, t):
+    return 0
 
 class Evolution():
     def __init__(self, target_code: str):
@@ -41,10 +43,10 @@ class Generation():
             newTestSuite = TestSuite(is_unit)
             newTestSuite.random_testCaseList(finder.classList, classObj1, classObj2)
             test_code = newTestSuite.build_testcases()
-            print(test_code)
+            #print(test_code)
             fitness = fitness_score(self.target_code, test_code)
             #print(self.target_code)
-            print(fitness)
+            #print(fitness)
             self.current_population.append((newTestSuite, fitness))
         
     def next_generation(self):
@@ -53,7 +55,7 @@ class Generation():
             test_code = new_testCase.build_testcases()
             fitness = fitness_score(self.target_code, test_code)
             #print(test_code)
-            print(fitness)
+            #print(fitness)
             self.current_population[i] = (new_testCase, fitness)
         self.current_population.sort(key=lambda tup: tup[1], reverse=True)
 

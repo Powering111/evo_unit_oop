@@ -37,9 +37,9 @@ class RandomObject():
 
     def rand_str(self):
         def randfunc(): 
-            return_str = random.choice(string.ascii_letters + string.digits)
+            return_str = random.choice(string.ascii_letters)
             for _ in range(100):
-                if random.randint(0, 10) < 9:
+                if random.random() < 0.9:
                     return_str += random.choice(string.ascii_letters +
                                                 string.digits)
                 else:

@@ -2,11 +2,14 @@ import random
 import sys
 from evolution.testSuite import *
 
-def mix_genome(genome1, genome2): #TODO!!!
+def crossover(lst1, lst2):
+    cross_point1 = random.randrange(0, len(lst1)+1)
+    cross_point2 = random.randrange(0, len(lst2)+1)
+    return lst1[:cross_point1]+lst2[cross_point2:]
+
+def mix_genome(genome1, genome2): 
     new_genome = genome1 if bool(random.getrandbits(1)) else genome2
-    cross_point1 = random.randrange(0, len(genome1.methodCall_lst)+1)
-    cross_point2 = random.randrange(0, len(genome2.methodCall_lst)+1)
-    new_genome.methodCall_lst = genome1.methodCall_lst[:cross_point1]+genome2.methodCall_lst[cross_point2:]
+    new_genome.methodCall_lst = crossover(genome1.methodCall_lst, genome2.methodCall_lst)
     return new_genome
 
 def mix_testCase(is_unit, testCase1, testCase2):
@@ -33,7 +36,7 @@ def reproduce_testSuite(prevgen_testSuites):
         mom = prevgen_testSuites[mom_index//5][0].testCaselist[mom_index%5]
         dad = prevgen_testSuites[dad_index//5][0].testCaselist[dad_index%5]
         new_testSuite.testCaselist.append(mix_testCase(is_unit, mom, dad))
-    mutate(new_testSuite)
+    #mutate(new_testSuite)
     return new_testSuite
 
 
@@ -41,9 +44,17 @@ def reproduce_testSuite(prevgen_testSuites):
 MUTATION_PROB = 0.2
 # EACH MUTATION WILL YIELD DIFFERENCE OF 10%
 MUTATION_SEVERITY = 0.1
-
+def mutate_methodCall(methodCall):
+    if methodCall == None: return
+    for i, arg in enumerate(methodCall.args):
+        if isinstance(arg, int):
+            print("hihi", arg)
+            print(type(methodCall.args))
 def mutate_genome(genome):
     pass
 def mutate(testSuite):
-    pass
-
+    if not testSuite.is_unit: return
+    for testCase in testSuite.testCaselist:
+        for assertion, _ in testCase.main_obj.methodCall_lst: 
+            mutate_methodCall(assertion.MethodCall)
+            
