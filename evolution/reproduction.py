@@ -1,18 +1,19 @@
 import random
 import sys
 from evolution.testSuite import *
+from evolution.genome import Genome
 
-def crossover(lst1, lst2):
+def crossover(lst1: list, lst2: list) -> list:
     cross_point1 = random.randrange(0, len(lst1)+1)
     cross_point2 = random.randrange(0, len(lst2)+1)
     return lst1[:cross_point1]+lst2[cross_point2:]
 
-def mix_genome(genome1, genome2): 
+def mix_genome(genome1: Genome, genome2: Genome) -> Genome: 
     new_genome = genome1 if bool(random.getrandbits(1)) else genome2
     #new_genome.methodCall_lst = crossover(genome1.methodCall_lst, genome2.methodCall_lst)
     return new_genome
 
-def mix_testCase(is_unit, testCase1, testCase2):
+def mix_testCase(is_unit: bool, testCase1: UnitTestCase|PairwiseTestCase, testCase2: UnitTestCase|PairwiseTestCase) -> UnitTestCase|PairwiseTestCase:
     # mix surrounding_objs
     new_surr_objs = []
     for obj1, obj2 in zip(testCase1.surrounding_objs, testCase2.surrounding_objs):
@@ -27,7 +28,7 @@ def mix_testCase(is_unit, testCase1, testCase2):
         new_main_obj2 =  mix_genome(testCase1.main_obj2, testCase2.main_obj2)
         return PairwiseTestCase(new_main_obj1, new_main_obj2, new_surr_objs)
 
-def reproduce_testSuite(prevgen_testSuites):
+def reproduce_testSuite(prevgen_testSuites: list[tuple[TestSuite,float]]) -> TestSuite:
     is_unit = prevgen_testSuites[0][0].is_unit
     new_testSuite = TestSuite(is_unit)
     for _ in range(5):

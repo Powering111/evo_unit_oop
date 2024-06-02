@@ -18,4 +18,6 @@ TARGET_PATH = os.path.join(TMP_DIR, TARGET_FILENAME)
 TEST_PATH = os.path.join(TMP_DIR, TEST_FILENAME)
 
 DO_MUTATION_TESTING = False
-USE_PYTEST = False
+
+# if we do mutation testing, we have to use pytest.
+USE_PYTEST = DO_MUTATION_TESTING or False
