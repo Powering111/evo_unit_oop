@@ -44,3 +44,12 @@ def fitness_score (target_code: str, test_suite: str, verbose = False) -> float 
     log("fitness: ", fitness)
     return fitness
 
+
+# Returns mapping from class name to the corresponding fitness.
+# it only measures coverage.
+def fitness_score_by_class(target_code: str, test_suite: str) -> dict[str,float]:
+
+    helper.cleanup()
+    helper.write_target(target_code, test_suite)
+
+    return fitness_cov.coverage_by_class()
