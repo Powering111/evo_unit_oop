@@ -57,7 +57,7 @@ def build_UnitTestCases(TestCaseList):
         # initialization of main_obj 
         main_obj_name = f"obj_{class_name}1"
         return_str += (f"    {main_obj_name}"
-            f"= target.{class_name}({', '.join(str(arg) for arg in testCase.main_obj.init_args)}) \n")
+            f"= target.{class_name}({', '.join(str(arg) for arg in testCase.main_obj.args)}) \n")
         index_count = defaultdict(lambda: 1)
         index_count[class_name] += 1
         methodCalls = []
@@ -67,7 +67,7 @@ def build_UnitTestCases(TestCaseList):
         
         for surr_obj in testCase.surrounding_objs:
             return_str += (f"    obj_{surr_obj.class_name}{index_count[surr_obj.class_name]}" 
-                f"= target.{surr_obj.class_name}({', '.join(str(arg) for arg in surr_obj.init_args)}) \n")
+                f"= target.{surr_obj.class_name}({', '.join(str(arg) for arg in surr_obj.args)}) \n")
             index_count[surr_obj.class_name] += 1
         # call methods
         count = 0
@@ -140,9 +140,9 @@ def build_PairwiseTestCases(TestCaseList):
         index_count[class_name2] +=1
         # initialize main objects
         return_str += (f"    {main_obj1_name}" 
-            f"= target.{class_name1}({', '.join(str(arg) for arg in testCase.main_obj1.init_args)}) \n")
+            f"= target.{class_name1}({', '.join(str(arg) for arg in testCase.main_obj1.args)}) \n")
         return_str += (f"    {main_obj2_name}" 
-            f"= target.{class_name2}({', '.join(str(arg) for arg in testCase.main_obj2.init_args)}) \n")
+            f"= target.{class_name2}({', '.join(str(arg) for arg in testCase.main_obj2.args)}) \n")
         # sort method calls by priority
         all_methodCalls = []
         for methodCall, priority in testCase.main_obj1.methodCall_lst:
@@ -153,7 +153,7 @@ def build_PairwiseTestCases(TestCaseList):
         # initialize surrounding objects
         for surr_obj in testCase.surrounding_objs:
             return_str += (f"    obj_{surr_obj.class_name}{index_count[surr_obj.class_name]}" 
-                f"= target.{surr_obj.class_name}({', '.join(str(arg) for arg in surr_obj.init_args)}) \n")
+                f"= target.{surr_obj.class_name}({', '.join(str(arg) for arg in surr_obj.args)}) \n")
             index_count[surr_obj.class_name] += 1
         # call methods and write assertions
         count = 0

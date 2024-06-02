@@ -4,7 +4,7 @@ class MethodCall():
     def __init__(self, class_name, method_name, *args, **kwargs):
         self.method_name = method_name
         self.class_name = class_name
-        self.args = args
+        self.args = [*args]
         self.kwargs = kwargs
 
     def call_str(self):
@@ -37,8 +37,8 @@ def RandomMethodCall(Class, method_name:str, rand_device):
 class Genome(): #1:1 with an object
     def __init__(self, class_name, *args, **kwargs):
         self.class_name = class_name
-        self.init_args = args
-        self.init_kwargs = kwargs
+        self.args = [*args]
+        self.kwargs = kwargs
         self.methodCall_lst = [] #(methodCall/Assertion, int)
     def set_methodCall_lst(self, methodCall_lst):
         self.methodCall_lst = methodCall_lst
@@ -47,6 +47,6 @@ class Genome(): #1:1 with an object
         self.methodCall_lst.append((methodcall, priority))
 
     def __str__(self):
-        meta = f"genome for {self.class_name}: a={self.init_args} kw={self.init_kwargs}"
+        meta = f"genome for {self.class_name}: a={self.args} kw={self.kwargs}"
         gene = "\n\t".join(str(mc) for mc in self.methodCall_lst)
         return meta + '\n\t' + gene

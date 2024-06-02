@@ -28,7 +28,11 @@ class RandomObject():
             return prev_list[rand_index]
 
     def rand_int(self):
-        def randfunc(): return random.randint(-sys.maxsize - 1, sys.maxsize)
+        def randfunc(): 
+            if  bool(random.getrandbits(1)): 
+                return random.randint(-100, 100)
+            else:
+                return random.randint(-sys.maxsize - 1, sys.maxsize)
         return self.prev_or_new("int", randfunc)
 
     def rand_float(self):
