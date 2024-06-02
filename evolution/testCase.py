@@ -33,7 +33,7 @@ def generate_UnitTestCase_List(classList, classObj):
     required_sub_obj = classObj.required_object_count
     for i in range(5):
         required_sub_obj[classObj.name]+=1
-        rand_device = RandomObject(classObj.required_object_count)
+        rand_device = RandomObject(required_sub_obj)
         required_sub_obj[classObj.name]-=1
         #initialize main_obj for the testcase
         main_obj = Genome(classObj.name, *RandomObject.RandomInit(classObj, rand_device))

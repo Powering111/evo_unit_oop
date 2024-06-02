@@ -57,7 +57,7 @@ class RandomObject():
     # Random sequence generator
     def RandomSequence(maxnum):
         ret = [random.randint(0, maxnum-1)]
-        while True:
+        for _ in range(50):
             if random.randint(0, 1): # increase length by 50% chance
                 ret.append(random.randint(0, maxnum-1))
             else:
