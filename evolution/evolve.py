@@ -41,8 +41,9 @@ class Generation():
             newTestSuite = TestSuite(is_unit)
             newTestSuite.random_testCaseList(finder.classList, classObj1, classObj2)
             test_code = newTestSuite.build_testcases()
-            fitness = fitness_score(self.target_code, test_code)
             print(test_code)
+            fitness = fitness_score(self.target_code, test_code)
+            #print(self.target_code)
             print(fitness)
             self.current_population.append((newTestSuite, fitness))
         
@@ -51,6 +52,8 @@ class Generation():
             new_testCase = reproduce_testSuite(self.current_population[:5])
             test_code = new_testCase.build_testcases()
             fitness = fitness_score(self.target_code, test_code)
+            #print(test_code)
+            print(fitness)
             self.current_population[i] = (new_testCase, fitness)
         self.current_population.sort(key=lambda tup: tup[1], reverse=True)
 

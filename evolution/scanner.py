@@ -52,7 +52,10 @@ class ClassScanner():
             type_count[x.annotation.id] +=1
         for type in type_count:
             if type_count[type] > self.required_object_count[type]:
-                self.required_object_count[type] = type_count[type]
+                if type == 'Self': 
+                    self.required_object_count[self.name] = type_count[type]
+                else:
+                    self.required_object_count[type] = type_count[type]
         for e in node.body:
             if isinstance(e, ast.Assign):
                 attr_name = e.targets[0].attr
@@ -70,7 +73,10 @@ class ClassScanner():
             type_count[x.annotation.id] +=1
         for type in type_count:
             if type_count[type] > self.required_object_count[type]:
-                self.required_object_count[type] = type_count[type]
+                if type == 'Self': 
+                    self.required_object_count[self.name] = type_count[type]
+                else:
+                    self.required_object_count[type] = type_count[type]
         self.method_args[name] = argsDict  
         if isinstance(node.returns, ast.Name):
             self.method_return[name] = node.returns.id

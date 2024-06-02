@@ -2,11 +2,12 @@ import random
 import string
 import sys
 from collections import defaultdict
+from copy import deepcopy
 
 # Random object generator
 class RandomObject():
     def __init__(self, object_count=defaultdict(int)):
-        self.object_count = object_count
+        self.object_count = deepcopy(object_count)
         self.prev_int = []
         self.prev_float = []
         self.prev_str = []

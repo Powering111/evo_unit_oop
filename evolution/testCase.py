@@ -32,7 +32,9 @@ def generate_UnitTestCase_List(classList, classObj):
     TestCaseList = []
     required_sub_obj = classObj.required_object_count
     for i in range(5):
+        required_sub_obj[classObj.name]+=1
         rand_device = RandomObject(classObj.required_object_count)
+        required_sub_obj[classObj.name]-=1
         #initialize main_obj for the testcase
         main_obj = Genome(classObj.name, *RandomObject.RandomInit(classObj, rand_device))
         add_random_methodcall_sequence(classObj, main_obj, rand_device)
@@ -51,16 +53,18 @@ def build_UnitTestCases(TestCaseList):
     class_name = TestCaseList[0].main_obj.class_name
     return_str = f"### unit testing for {class_name}\n"
     for i, testCase in enumerate(TestCaseList, start=1):
-        return_str += f"\ndef test_{class_name}{i}():\n" 
-        main_obj_name = "main_obj"
-        # initialization of main_obj
-        return_str += (f"    {main_obj_name}" 
+        return_str += f"\ndef test_{class_name}{i}():\n"
+        # initialization of main_obj 
+        main_obj_name = f"obj_{class_name}1"
+        return_str += (f"    {main_obj_name}"
             f"= target.{class_name}({', '.join(str(arg) for arg in testCase.main_obj.init_args)}) \n")
+        index_count = defaultdict(lambda: 1)
+        index_count[class_name] += 1
         methodCalls = []
         methodCalls.extend(testCase.main_obj.methodCall_lst)
         methodCalls.sort(key=lambda tup: tup[1])
         # initialization of surrounding_obj
-        index_count = defaultdict(lambda: 1)
+        
         for surr_obj in testCase.surrounding_objs:
             return_str += (f"    obj_{surr_obj.class_name}{index_count[surr_obj.class_name]}" 
                 f"= target.{surr_obj.class_name}({', '.join(str(arg) for arg in surr_obj.init_args)}) \n")
@@ -101,7 +105,11 @@ def generate_PairwiseTestCase_List(classList, classObj1, classObj2):
         for k, v in d.items():
             required_sub_obj[k] = max(required_sub_obj[k], v)
     for i in range(5):
+        required_sub_obj[classObj1.name]+=1
+        required_sub_obj[classObj2.name]+=1
         rand_device = RandomObject(required_sub_obj)
+        required_sub_obj[classObj1.name]-=1
+        required_sub_obj[classObj2.name]-=1
         #initialize main_obj for the testcase
         main_obj1 = Genome(classObj1.name, *RandomObject.RandomInit(classObj1, rand_device))
         main_obj2 = Genome(classObj2.name, *RandomObject.RandomInit(classObj2, rand_device))
@@ -125,10 +133,10 @@ def build_PairwiseTestCases(TestCaseList):
     for i, testCase in enumerate(TestCaseList, start=1):
         # declare function
         return_str += f"\ndef test_{class_name1}_{class_name2}{i}():\n" 
-        main_obj1_name = f"obj_{class_name1}1"
-        main_obj2_name =  f"obj_{class_name2}1"
         index_count = defaultdict(lambda: 1) # track object names
+        main_obj1_name = f"obj_{class_name1}1"
         index_count[class_name1] +=1
+        main_obj2_name =  f"obj_{class_name2}{index_count[class_name2]}"
         index_count[class_name2] +=1
         # initialize main objects
         return_str += (f"    {main_obj1_name}" 
