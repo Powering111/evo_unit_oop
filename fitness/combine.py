@@ -12,7 +12,7 @@ def fitness_score (target_code: str, test_suite: str, verbose = False) -> float 
         helper.make_testsuite() 
     except helper.makeTestsuiteFailedException:
         return 0 # test suite creation failed due to infinite loop, runtime error, etc.
-    
+
     log("Test suite made")
     c = fitness_cov.parse_coverage(fitness_cov.get_coverage())
     log("Coverage", c)
@@ -20,7 +20,7 @@ def fitness_score (target_code: str, test_suite: str, verbose = False) -> float 
     fitness = fitness_cov.coverage_score() 
     time = None
 
-    if fitness > 1.5 : 
+    if helper.DO_MUTATION_TESTING and fitness > 1.5 : 
         log("Doing mutation")
         m = fitness_mut.parse_mutation(fitness_mut.get_mutation())
         log("Mutation", m)
@@ -51,5 +51,6 @@ def fitness_score_by_class(target_code: str, test_suite: str) -> dict[str,float]
 
     helper.cleanup()
     helper.write_target(target_code, test_suite)
+    helper.make_testsuite()
 
     return fitness_cov.coverage_by_class()
