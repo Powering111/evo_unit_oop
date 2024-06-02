@@ -74,33 +74,17 @@ class Generation():
         return self.current_population[0][0].testCaselist
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Rewrites programs.')
-    parser.add_argument('-t', '--target', required=True)
-    #parser.add_argument('-c', '--targetClass', required=True)
-    parser.add_argument("remaining", nargs="*")
-    args = parser.parse_args()
-
-    target = pathlib.Path(args.target)
-    #target_class = args.targetClass
-    #print(target_class, type(target_class))
-    # check validity of the target
-    if target.suffix != '.py':
-        parser.error('Argument error: target has to be .py file')
-    if not (target.exists() and target.is_file()):
-        parser.error('Argument error: target has to be an existing file')
-
-    sys.argv[1:] = args.remaining
-
-    target_code = target.read_text()
-    path_to_write = (target.parent / "testsuites" / f"test_{target.stem}.py")
-
-    
-    test_code = "import hello as target\n"
-    test_code += Evolution(target_code).evolution(0.9, 10)
-    
-    with open(path_to_write, 'w') as f:
-        f.write(test_code)
-
-    #score = fitness_score(target_code, test_code)
-    #print(score)
+def run_once(target_code: str) -> str:
+    finder = ClassFinder()
+    finder.visit(ast.parse(target_code))
+    test_code = "import target\n"
+    for classObj in finder.classList:
+        # unittest
+        tclist = generate_UnitTestCase_List(finder.classList, classObj)
+        test_code += build_UnitTestCases(tclist)
+        for classObj2 in finder.classList:
+            if classObj.required_object_count[classObj2.name] == 0: continue
+            # pairwise testing
+            tclist = generate_PairwiseTestCase_List(finder.classList, classObj, classObj2)
+            test_code += build_PairwiseTestCases(tclist)
+    return test_code
