@@ -21,10 +21,11 @@ def get_coverage () -> dict:
         else:
             cmd=f"coverage run --branch {helper.TEST_PATH}"
 
-        sp.run(cmd, shell=True, check=True, capture_output=True)
+        sp.run(cmd, shell=True, check=True, capture_output=True,timeout=10)
     except sp.CalledProcessError as e:
-        #print("coverage measurement failed")
-        #print(e.stdout.decode())
+        pass
+    except sp.TimeoutExpired:
+        print("timeout while measuring coverage")
         pass
     
     sp.run("coverage json --pretty-print -o cov.json", shell=True, check=True, capture_output=True)
