@@ -13,7 +13,6 @@ import ast
 def get_coverage () -> dict:
 
     # run coverage.py
-    # are there something in windows like /tmp that is not ./tmp ???
     oldcwd = os.getcwd()
     os.chdir(helper.TMP_DIR)
     try:
@@ -90,7 +89,7 @@ def coverage_by_class () -> dict[str,float]:
         result[className] = covered_stmts[className]/len(linenos)
     return result
 
-def coverage_score (): 
+def coverage_score () -> float: 
     c = parse_coverage(get_coverage())
 
     stmt_cov = c[0][0] / c[0][1] if c[0][1] != 0 else 1

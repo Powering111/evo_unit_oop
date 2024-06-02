@@ -1,5 +1,6 @@
 from evolution.random_object import RandomObject
 from evolution.genome import *
+from evolution.scanner import ClassScanner
 import sys
 from collections import defaultdict
 
@@ -20,7 +21,7 @@ def add_random_methodcall_sequence(classObj, obj, rand_device):
 
 
 class UnitTestCase():
-    def __init__(self, main_obj:Genome, surrounding_objs):
+    def __init__(self, main_obj:Genome, surrounding_objs: list[Genome]):
         '''
         main_obj: calls methods in the test function
         surrounding_objs: does not call methods in the test function
@@ -28,8 +29,8 @@ class UnitTestCase():
         self.main_obj = main_obj 
         self.surrounding_objs = surrounding_objs 
 
-def generate_UnitTestCase_List(classList, classObj):
-    TestCaseList = []
+def generate_UnitTestCase_List(classList: list[ClassScanner], classObj: ClassScanner) -> list[UnitTestCase]:
+    TestCaseList: list[UnitTestCase] = []
     required_sub_obj = classObj.required_object_count
     for i in range(5):
         required_sub_obj[classObj.name]+=1
@@ -40,7 +41,7 @@ def generate_UnitTestCase_List(classList, classObj):
         add_random_methodcall_sequence(classObj, main_obj, rand_device)
         # initialize surrounding_objs for the testcase
         # surrounding_objs are made only when main_obj has a method that uses it as a parameter
-        surr_objs = []
+        surr_objs: list[Genome] = []
         for classObject in classList:
             for _ in range(required_sub_obj[classObject.name]):
                 new_obj = Genome(classObject.name, *RandomObject.RandomInit(classObject, rand_device)) 
@@ -49,7 +50,7 @@ def generate_UnitTestCase_List(classList, classObj):
         TestCaseList.append(newTestCase)
     return TestCaseList
 
-def build_UnitTestCases(TestCaseList):
+def build_UnitTestCases(TestCaseList: list[UnitTestCase]) -> str:
     class_name = TestCaseList[0].main_obj.class_name
     return_str = f"### unit testing for {class_name}\n"
     for i, testCase in enumerate(TestCaseList, start=1):
@@ -87,7 +88,7 @@ def build_UnitTestCases(TestCaseList):
 
 
 class PairwiseTestCase():
-    def __init__(self, main_obj1:Genome, main_obj2:Genome, surrounding_objs):
+    def __init__(self, main_obj1:Genome, main_obj2:Genome, surrounding_objs: list[Genome]):
         '''
         main_obj1, main_obj2: calls methods in the test function
         surrounding_objs: does not call methods in the test function
@@ -96,9 +97,9 @@ class PairwiseTestCase():
         self.main_obj2 = main_obj2
         self.surrounding_objs = surrounding_objs
 
-def generate_PairwiseTestCase_List(classList, classObj1, classObj2):
+def generate_PairwiseTestCase_List(classList: list[ClassScanner], classObj1: ClassScanner, classObj2: ClassScanner) -> list[PairwiseTestCase]:
 
-    TestCaseList = []
+    TestCaseList: list[PairwiseTestCase] = []
     required_sub_obj = defaultdict(int)
     # merge required_object_count for class1 and class2
     for d in (classObj1.required_object_count, classObj2.required_object_count):
@@ -126,7 +127,7 @@ def generate_PairwiseTestCase_List(classList, classObj1, classObj2):
         TestCaseList.append(newTestCase)
     return TestCaseList
 
-def build_PairwiseTestCases(TestCaseList):
+def build_PairwiseTestCases(TestCaseList: list[PairwiseTestCase]) -> str:
     class_name1 = TestCaseList[0].main_obj1.class_name
     class_name2 = TestCaseList[0].main_obj2.class_name
     return_str = f"### pairwise testing for {class_name1} and {class_name2}\n"

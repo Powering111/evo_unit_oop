@@ -28,11 +28,11 @@ class ClassFinder(ast.NodeVisitor):
 # Get class attributes and methods
 class ClassScanner(): 
     def __init__(self):
-        self.name = ""
-        self.attributes = dict() # dict[attribute name, attribute type]
-        self.method_args = dict() # dict[method name, dict[arg name, arg type]]
-        self.method_return = dict() # dict[method name, return type]
-        self.required_object_count = defaultdict(int) #dict[type name, maximum required object for a method call]
+        self.name: str = ""
+        self.attributes: dict[str,str] = dict() # dict[attribute name, attribute type]
+        self.method_args: dict[str,dict[str,str]] = dict() # dict[method name, dict[arg name, arg type]]
+        self.method_return: dict[str,str] = dict() # dict[method name, return type]
+        self.required_object_count: dict[str,int] = defaultdict(int) #dict[type name, maximum required object for a method call]
     def visit(self, node): 
         self.name = node.name
         for fundef in node.body:
@@ -77,9 +77,9 @@ class ClassScanner():
                     self.required_object_count[self.name] = type_count[type]
                 else:
                     self.required_object_count[type] = type_count[type]
-        self.method_args[name] = argsDict  
+        self.method_args[name] = argsDict
         if isinstance(node.returns, ast.Name):
-            self.method_return[name] = node.returns.id
+            self.method_return[name] = str(node.returns.id)
         else:
             self.method_return[name] = "None"  
 
