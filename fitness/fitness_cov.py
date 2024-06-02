@@ -10,7 +10,7 @@ import ast
 
 # Given the target python class in string `target_code` and given the test-suite in string `test_suite`
 # Run the the test_suite and return the corresponding coverage object
-def get_coverage () -> dict:
+def get_coverage () -> dict|None:
 
     # run coverage.py
     oldcwd = os.getcwd()
@@ -21,15 +21,19 @@ def get_coverage () -> dict:
         else:
             cmd=f"coverage run --branch {helper.TEST_PATH}"
 
-        sp.run(cmd, shell=True, check=True, capture_output=True,timeout=10)
-    except sp.CalledProcessError as e:
+        process = sp.Popen(args=cmd.split(), stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+        process.wait(10)
+    except sp.CalledProcessError:
         pass
     except sp.TimeoutExpired:
         print("timeout while measuring coverage")
-        pass
-    
-    sp.run("coverage json --pretty-print -o cov.json", shell=True, check=True, capture_output=True)
-
+        if process is not None:
+            process.kill()
+    try:
+        sp.run("coverage json --pretty-print -o cov.json", shell=True, check=True, capture_output=True)
+    except sp.CalledProcessError:
+        os.chdir(oldcwd)
+        return None
     # get result
     result_file = open('cov.json', 'r')
     result_obj = json.load(result_file)
@@ -43,6 +47,8 @@ def get_coverage () -> dict:
     return result_obj['files'][target_result[0]]
 
 def parse_coverage (cov) :
+    if cov is None:
+        return None
     stmt = (cov['summary']['covered_lines'], cov['summary']['num_statements'])
     branch = (cov['summary']['covered_branches'], cov['summary']['num_branches'])
     return stmt, branch
@@ -84,14 +90,19 @@ def coverage_by_class () -> dict[str,float]:
     for className,linenos in scanner.data.items():
         assert len(linenos)>0
         covered_stmts[className]=0
-        for lineno in coverage['executed_lines']:
-            if lineno in linenos:
-                covered_stmts[className] += 1
-        result[className] = covered_stmts[className]/len(linenos)
+        if coverage is not None:
+            for lineno in coverage['executed_lines']:
+                if lineno in linenos:
+                    covered_stmts[className] += 1
+            result[className] = covered_stmts[className]/len(linenos)
+        else:
+            result[className] = 0
     return result
 
 def coverage_score () -> float: 
     c = parse_coverage(get_coverage())
+    if c is None:
+        return 0
 
     stmt_cov = c[0][0] / c[0][1] if c[0][1] != 0 else 1
     branch_cov = c[1][0] / c[1][1] if c[1][1] != 0 else 1
