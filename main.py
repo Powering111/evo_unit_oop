@@ -37,7 +37,7 @@ if __name__ == '__main__':
     # combine.fitness_score(target_code, final_test_code, verbose=True)
 
     target_code = target.read_text()
-    final_test_code =  Evolution(target_code).evolution(0.9, 10)
+    final_test_code =  Evolution(target_code, str(target.stem)).evolution(0.9, 10)
 
     path_to_write = (target.parent / "testsuites" / f"test_{target.stem}.py")
     with open(path_to_write, 'w') as f:

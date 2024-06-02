@@ -59,11 +59,11 @@ def mutate_str(str):
     if random.random() > MUTATION_PROB: return str
     index=random.random()
     str = str.replace("\"","")
-    if index < 0.2: str = str[1:]
-    elif index < 0.4: str = str[:-1]
-    elif index < 0.6: str = crossover(str, str)
-    else: str = RandomObject().rand_str
-    return str
+    if index < 0.2: return_str = str[1:]
+    elif index < 0.4: return_str = str[:-1]
+    elif index < 0.6: return_str = crossover(str, str)
+    else: return_str = RandomObject().rand_str
+    return f'"{return_str}"'
 
 def mutate_float(f):
     if random.random() > MUTATION_PROB: return f

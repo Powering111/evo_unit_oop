@@ -7,10 +7,8 @@ from evolution.testCase import *
 from evolution.genome import *
 from evolution.testSuite import *
 from evolution.reproduction import *
-
+from evolution.record_evolution import write_to_csv
 from fitness.combine import fitness_score_by_class
-import argparse
-import pathlib
 
 def fitness_score(target_code, test_Suite, class_name1, class_name2):
     test_code = test_Suite.build_testcases()
@@ -23,22 +21,25 @@ def fitness_score(target_code, test_Suite, class_name1, class_name2):
         return (fitness_score[class_name1] + fitness_score[class_name2])/2
 
 class Evolution():
-    def __init__(self, target_code: str):
+    def __init__(self, target_code: str, target_name:str):
         self.finder = ClassFinder()
         self.finder.visit(ast.parse(target_code))
         self.target_code = target_code
-    def evolution(self, threshold_score: float, max_generation: int):
+        self.target_name = target_name
+    def evolution(self, threshold_score: float, max_generation: int, csv_path=None):
         test_code = ""
         for classObj in self.finder.classList:
             # unittest
             gen = Generation(self.target_code, self.finder, True, classObj)
             test_code += build_UnitTestCases(gen.evolve(threshold_score, max_generation))
+            write_to_csv(self.target_name, classObj.name, gen.record_fitness)
         for classObj1 in self.finder.classList:
             for classObj2 in self.finder.classList:
                 if classObj1.required_object_count[classObj2.name] == 0: continue
                 # pairwise testing
                 gen = Generation(self.target_code, self.finder, False, classObj1, classObj2)
                 test_code += build_PairwiseTestCases(gen.evolve(threshold_score, max_generation))
+                write_to_csv(self.target_name, (classObj1.name+classObj2.name), gen.record_fitness)
         return test_code
 
 class Generation():
@@ -47,6 +48,7 @@ class Generation():
         self.current_population = [] # (testsuite, fitness)
         self.class_name1 = classObj1.name
         self.class_name2 = None if classObj2==None else classObj2.name
+        self.record_fitness = []
         print(self.class_name1, self.class_name2)
         for _ in range(10):
             newTestSuite = TestSuite(is_unit)
@@ -68,6 +70,7 @@ class Generation():
     def evolve(self, threshold_score: float, max_generation: int) -> list[Genome]:
         for i in range(max_generation):
             self.current_population.sort(key=lambda tup: tup[1], reverse=True)
+            self.record_fitness.append([tup[1] for tup in self.current_population])
             print("top:", self.current_population[0][1])
             if self.current_population[0][1] >= threshold_score:
                 break
