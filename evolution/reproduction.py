@@ -2,6 +2,7 @@ import random
 import sys
 from evolution.testSuite import *
 from evolution.genome import Genome
+from evolution.settings import *
 
 def crossover(lst1: list, lst2: list) -> list:
     cross_point1 = random.randrange(0, len(lst1)+1)
@@ -31,11 +32,13 @@ def mix_testCase(is_unit: bool, testCase1: UnitTestCase|PairwiseTestCase, testCa
 def reproduce_testSuite(prevgen_testSuites: list[tuple[TestSuite,float]]) -> TestSuite:
     is_unit = prevgen_testSuites[0][0].is_unit
     new_testSuite = TestSuite(is_unit)
-    for _ in range(5):
-        mom_index = random.randint(0, 24)
-        dad_index = random.randint(0, 24)
-        mom = prevgen_testSuites[mom_index//5][0].testCaselist[mom_index%5]
-        dad = prevgen_testSuites[dad_index//5][0].testCaselist[dad_index%5]
+    n = len(prevgen_testSuites)
+    m = CASE_PER_SUITE
+    for _ in range(m):
+        mom_index = random.randint(0, n*m-1)
+        dad_index = random.randint(0, n*m-1)
+        mom = prevgen_testSuites[mom_index//m][0].testCaselist[mom_index%m]
+        dad = prevgen_testSuites[dad_index//m][0].testCaselist[dad_index%m]
         new_testSuite.testCaselist.append(mix_testCase(is_unit, mom, dad))
     return new_testSuite
 

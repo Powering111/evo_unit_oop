@@ -3,10 +3,11 @@ import string
 import sys
 from collections import defaultdict
 from copy import deepcopy
+from typing import Any
 
 # Random object generator
 class RandomObject():
-    def __init__(self, object_count=defaultdict(int)):
+    def __init__(self, object_count:dict[Any, int]=defaultdict(int)):
         self.object_count = deepcopy(object_count)
         self.prev_int = []
         self.prev_float = []
@@ -54,20 +55,20 @@ class RandomObject():
     def rand_bool(self):
         return bool(random.randint(0, 1))
     
-    # Random sequence generator
-    def RandomSequence(maxnum):
-        ret = [random.randint(0, maxnum-1)]
-        for _ in range(50):
-            if random.randint(0, 1): # increase length by 50% chance
-                ret.append(random.randint(0, maxnum-1))
-            else:
-                break
-        return ret
+# Random sequence generator
+def RandomSequence(maxnum):
+    ret = [random.randint(0, maxnum-1)]
+    for _ in range(50):
+        if random.randint(0, 1): # increase length by 50% chance
+            ret.append(random.randint(0, maxnum-1))
+        else:
+            break
+    return ret
     
-    # Generate random values for class attributes
-    def RandomInit(Class, rand_device) -> list:
-        attrs = []
-        for attr_name, attr_type in Class.attributes.items():
-            attrs.append(getattr(rand_device, f"rand_{attr_type}")())
-        # instance = getattr(Class.object, Class.name)
-        return attrs
+# Generate random values for class attributes
+def RandomInit(classobj, rand_device) -> list:
+    attrs = []
+    for attr_name, attr_type in classobj.attributes.items():
+        attrs.append(getattr(rand_device, f"rand_{attr_type}")())
+    # instance = getattr(Class.object, Class.name)
+    return attrs
