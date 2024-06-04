@@ -15,6 +15,7 @@ def get_coverage () -> dict|None:
     # run coverage.py
     oldcwd = os.getcwd()
     os.chdir(helper.TMP_DIR)
+    process = None
     try:
         if helper.USE_PYTEST:
             cmd=f"coverage run --branch -m pytest {helper.TEST_PATH}"
@@ -24,6 +25,7 @@ def get_coverage () -> dict|None:
         process = sp.Popen(args=cmd.split(), stdout=sp.DEVNULL, stderr=sp.DEVNULL)
         process.wait(10)
     except sp.CalledProcessError:
+        print("PROCESS ERROR")
         pass
     except sp.TimeoutExpired:
         print("timeout while measuring coverage")
@@ -41,9 +43,10 @@ def get_coverage () -> dict|None:
 
     assert ('files' in result_obj.keys())
     target_result = [file for file in result_obj['files'] if file.split('/')[-1] == helper.TARGET_FILENAME]
-    assert len(target_result) == 1
 
     os.chdir(oldcwd)
+
+    if len(target_result) != 1: return None
     return result_obj['files'][target_result[0]]
 
 def parse_coverage (cov) :

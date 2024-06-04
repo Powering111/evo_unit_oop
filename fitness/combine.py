@@ -3,6 +3,8 @@ from . import helper
 
 def fitness_score (target_code: str, test_suite: str, verbose = False) -> float :
 
+    print(test_suite)
+
     def log (*x) :
         if verbose : print(*x)
 
@@ -13,15 +15,15 @@ def fitness_score (target_code: str, test_suite: str, verbose = False) -> float 
     except helper.makeTestsuiteFailedException:
         return 0 # test suite creation failed due to infinite loop, runtime error, etc.
 
-    log("Test suite made")
-    c = fitness_cov.parse_coverage(fitness_cov.get_coverage())
-    log("Coverage", c)
+    if verbose: 
+        print("Test suite made")
+        c = fitness_cov.parse_coverage(fitness_cov.get_coverage())
+        print("Coverage", c)
     
     fitness = fitness_cov.coverage_score() 
     time = None
 
     if helper.DO_MUTATION_TESTING and fitness > 1.5 : 
-        log("Doing mutation")
         m = fitness_mut.parse_mutation(fitness_mut.get_mutation())
         log("Mutation", m)
 
