@@ -4,6 +4,13 @@ import sys
 from collections import defaultdict
 from copy import deepcopy
 
+class CustomObj():
+    def __init__(self, type, index):
+        self.type = type
+        self.index = index
+    def __str__(self):
+        return f"obj_{self.type}{self.index}"
+
 # Random object generator
 class RandomObject():
     def __init__(self, object_count=defaultdict(int)):
@@ -18,7 +25,7 @@ class RandomObject():
         prev_list = getattr(self, f"prev_{type}")
         if self.object_count[type] != 0 and type not in ['int', 'float', 'str', 'bool']:
             rand_index = random.randint(1, self.object_count[type])
-            return f"obj_{type}{rand_index}"
+            return CustomObj(type, rand_index)
         rand_index = random.randint(0, len(prev_list))
         if rand_index == len(prev_list):
             new_value = randfunc()

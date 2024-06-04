@@ -69,7 +69,7 @@ class Generation():
                 mutate(self.current_population[i][0], self.classObj1, self.classObj2)
                 new_testSuite = self.current_population[i][0]
             else: 
-                new_testSuite = reproduce_testSuite(self.current_population[:5])
+                new_testSuite = reproduce_testSuite(self.current_population[:KEEP_MUT])
                 mutate(new_testSuite, self.classObj1, self.classObj2)
             fitness = fitness_score(self.target_code, new_testSuite, self.classObj1.name, self.class_name2)
             #print(test_code)

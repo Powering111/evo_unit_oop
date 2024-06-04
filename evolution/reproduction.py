@@ -33,8 +33,8 @@ def reproduce_testSuite(prevgen_testSuites: list[tuple[TestSuite,float]]) -> Tes
     is_unit = prevgen_testSuites[0][0].is_unit
     new_testSuite = TestSuite(is_unit)
     for _ in range(CASE_PER_SUITE):
-        mom_index = random.randint(0, BREED_FROM * CASE_PER_SUITE)
-        dad_index = random.randint(0, BREED_FROM * CASE_PER_SUITE)
+        mom_index = random.randint(0, BREED_FROM * CASE_PER_SUITE-1)
+        dad_index = random.randint(0, BREED_FROM * CASE_PER_SUITE-1)
         mom = prevgen_testSuites[mom_index//CASE_PER_SUITE][0].testCaselist[mom_index%CASE_PER_SUITE]
         dad = prevgen_testSuites[dad_index//CASE_PER_SUITE][0].testCaselist[dad_index%CASE_PER_SUITE]
         new_testSuite.testCaselist.append(mix_testCase(is_unit, mom, dad))
@@ -42,7 +42,7 @@ def reproduce_testSuite(prevgen_testSuites: list[tuple[TestSuite,float]]) -> Tes
 
 
 # MUTATE 30% of the population
-MUTATION_PROB = 0.3
+MUTATION_PROB = 0.2
 
 def mutate_int(i):
     #print("mutate int")
@@ -51,7 +51,7 @@ def mutate_int(i):
     if index < 0.2: return i+1
     elif index < 0.4: return i-1
     elif index < 0.6: return -i
-    else: random.randint(-sys.maxsize - 1, sys.maxsize)
+    else: return random.randint(-sys.maxsize - 1, sys.maxsize)
 
 def mutate_str(str):
     #print("mutate str")

@@ -20,3 +20,6 @@ class TestSuite():
             return "import target\n" + build_UnitTestCases(self.testCaselist)
         else:
             return "import target\n" + build_PairwiseTestCases(self.testCaselist)
+
+    def count_methodCalls(self):
+        pass
