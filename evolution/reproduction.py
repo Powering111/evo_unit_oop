@@ -1,5 +1,6 @@
 import random
 import sys
+from evolution.settings import BREED_FROM
 from evolution.testSuite import *
 from evolution.genome import Genome
 
@@ -31,11 +32,11 @@ def mix_testCase(is_unit: bool, testCase1: UnitTestCase|PairwiseTestCase, testCa
 def reproduce_testSuite(prevgen_testSuites: list[tuple[TestSuite,float]]) -> TestSuite:
     is_unit = prevgen_testSuites[0][0].is_unit
     new_testSuite = TestSuite(is_unit)
-    for _ in range(5):
-        mom_index = random.randint(0, 24)
-        dad_index = random.randint(0, 24)
-        mom = prevgen_testSuites[mom_index//5][0].testCaselist[mom_index%5]
-        dad = prevgen_testSuites[dad_index//5][0].testCaselist[dad_index%5]
+    for _ in range(CASE_PER_SUITE):
+        mom_index = random.randint(0, BREED_FROM * CASE_PER_SUITE)
+        dad_index = random.randint(0, BREED_FROM * CASE_PER_SUITE)
+        mom = prevgen_testSuites[mom_index//CASE_PER_SUITE][0].testCaselist[mom_index%CASE_PER_SUITE]
+        dad = prevgen_testSuites[dad_index//CASE_PER_SUITE][0].testCaselist[dad_index%CASE_PER_SUITE]
         new_testSuite.testCaselist.append(mix_testCase(is_unit, mom, dad))
     return new_testSuite
 

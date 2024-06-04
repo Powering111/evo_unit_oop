@@ -4,6 +4,8 @@ from evolution.scanner import ClassScanner
 import sys
 from collections import defaultdict
 
+from evolution.settings import CASE_PER_SUITE
+
 def add_random_methodcall_sequence(classObj, obj, rand_device):
     ### add random numbers of random methodcalls to obj 
     num_methods = len(classObj.method_args)
@@ -32,7 +34,7 @@ class UnitTestCase():
 def generate_UnitTestCase_List(classList: list[ClassScanner], classObj: ClassScanner) -> list[UnitTestCase]:
     TestCaseList: list[UnitTestCase] = []
     required_sub_obj = classObj.required_object_count
-    for i in range(5):
+    for _ in range(CASE_PER_SUITE):
         required_sub_obj[classObj.name]+=1
         rand_device = RandomObject(required_sub_obj)
         required_sub_obj[classObj.name]-=1
@@ -105,7 +107,7 @@ def generate_PairwiseTestCase_List(classList: list[ClassScanner], classObj1: Cla
     for d in (classObj1.required_object_count, classObj2.required_object_count):
         for k, v in d.items():
             required_sub_obj[k] = max(required_sub_obj[k], v)
-    for i in range(5):
+    for _ in range(CASE_PER_SUITE):
         required_sub_obj[classObj1.name]+=1
         required_sub_obj[classObj2.name]+=1
         rand_device = RandomObject(required_sub_obj)

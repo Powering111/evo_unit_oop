@@ -7,8 +7,7 @@ from evolution.testSuite import *
 from evolution.reproduction import *
 from evolution.record_evolution import write_to_csv
 from fitness.combine import fitness_score_by_class
-import pathlib
-
+from evolution.settings import *
 
 def fitness_score(target_code: str, test_suite: TestSuite, class_name1: str, class_name2: str | None = None) -> float:
     test_code = test_suite.build_testcases()
@@ -55,7 +54,7 @@ class Generation():
         self.class_name2 = None if classObj2==None else classObj2.name
         self.record_fitness = []
         print(self.classObj1.name, self.class_name2)
-        for _ in range(10):
+        for _ in range(POP_PER_GEN):
             newTestSuite = TestSuite(is_unit)
             newTestSuite.random_testCaseList(finder.classList, classObj1, classObj2)
             #print(test_code)
@@ -65,8 +64,8 @@ class Generation():
             self.current_population.append((newTestSuite, fitness))
 
     def next_generation(self):
-        for i in range(2, 10):
-            if i < 5:
+        for i in range(KEEP_CLEAN, POP_PER_GEN):
+            if i < KEEP_MUT:
                 mutate(self.current_population[i][0], self.classObj1, self.classObj2)
                 new_testSuite = self.current_population[i][0]
             else: 
