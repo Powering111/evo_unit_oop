@@ -49,20 +49,12 @@ class Evolution():
 class Generation():
     def __init__(self, target_code: str, finder: ClassFinder, is_unit: bool, classObj1: ClassScanner, classObj2: ClassScanner | None = None):
         self.target_code = target_code
-<<<<<<< HEAD
         self.current_population = [] # (testsuite, fitness)
         self.classObj1 = classObj1
         self.classObj2 = classObj2
         self.class_name2 = None if classObj2==None else classObj2.name
         self.record_fitness = []
         print(self.classObj1.name, self.class_name2)
-=======
-        self.current_population: list[tuple[TestSuite,float]] = [] # (testsuite, fitness)
-        self.class_name1 = classObj1.name
-        self.class_name2 = None if classObj2==None else classObj2.name
-        self.record_fitness: list[list[float]] = []
-        print(self.class_name1, self.class_name2)
->>>>>>> 4caa30e5edc7cd53fe20c0dec293f68af1799ef4
         for _ in range(10):
             newTestSuite = TestSuite(is_unit)
             newTestSuite.random_testCaseList(finder.classList, classObj1, classObj2)
@@ -73,7 +65,6 @@ class Generation():
             self.current_population.append((newTestSuite, fitness))
 
     def next_generation(self):
-<<<<<<< HEAD
         for i in range(2, 10):
             if i < 5:
                 mutate(self.current_population[i][0], self.classObj1, self.classObj2)
@@ -83,13 +74,6 @@ class Generation():
                 mutate(new_testSuite, self.classObj1, self.classObj2)
             fitness = fitness_score(self.target_code, new_testSuite, self.classObj1.name, self.class_name2)
             #print(test_code)
-=======
-        print("Next gen")
-        for i in range(5, 10):
-            new_testSuite = reproduce_testSuite(self.current_population[:5])
-            fitness = fitness_score(
-                self.target_code, new_testSuite, self.class_name1, self.class_name2)
->>>>>>> 4caa30e5edc7cd53fe20c0dec293f68af1799ef4
             print(fitness)
             self.current_population[i] = (new_testSuite, fitness)
 
