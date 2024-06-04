@@ -27,6 +27,7 @@ def RandomMethodCall(Class, method_name:str, rand_device):
     args = list()
     for arg_name, arg_type in method_args.items():
         if arg_type == "Self":
+            i = random.randrange(0, 5)
             args.append(getattr(rand_device, f"rand_{Class.name}")())
         else:
             args.append(getattr(rand_device, f"rand_{arg_type}")())

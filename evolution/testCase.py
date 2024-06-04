@@ -1,15 +1,14 @@
-from evolution.random_object import RandomObject, RandomInit, RandomSequence
+from evolution.random_object import RandomObject
 from evolution.genome import *
 from evolution.scanner import ClassScanner
 import sys
 from collections import defaultdict
-from evolution.settings import *
 
 def add_random_methodcall_sequence(classObj, obj, rand_device):
     ### add random numbers of random methodcalls to obj 
     num_methods = len(classObj.method_args)
     num_attrs = len(classObj.attributes)
-    for i in RandomSequence(num_methods+num_attrs):
+    for i in RandomObject.RandomSequence(num_methods+num_attrs):
         priority = random.randint(-sys.maxsize - 1, sys.maxsize)
         if i < num_methods:
             if list(classObj.method_return.values())[i] != None:
@@ -33,25 +32,25 @@ class UnitTestCase():
 def generate_UnitTestCase_List(classList: list[ClassScanner], classObj: ClassScanner) -> list[UnitTestCase]:
     TestCaseList: list[UnitTestCase] = []
     required_sub_obj = classObj.required_object_count
-    for _ in range(CASE_PER_SUITE):
+    for i in range(5):
         required_sub_obj[classObj.name]+=1
         rand_device = RandomObject(required_sub_obj)
         required_sub_obj[classObj.name]-=1
         #initialize main_obj for the testcase
-        main_obj = Genome(classObj.name, RandomInit(classObj, rand_device))
+        main_obj = Genome(classObj.name, *RandomObject.RandomInit(classObj, rand_device))
         add_random_methodcall_sequence(classObj, main_obj, rand_device)
         # initialize surrounding_objs for the testcase
         # surrounding_objs are made only when main_obj has a method that uses it as a parameter
         surr_objs: list[Genome] = []
         for classObject in classList:
             for _ in range(required_sub_obj[classObject.name]):
-                new_obj = Genome(classObject.name, RandomInit(classObject, rand_device)) 
+                new_obj = Genome(classObject.name, *RandomObject.RandomInit(classObject, rand_device)) 
                 surr_objs.append(new_obj)
         newTestCase = UnitTestCase(main_obj, surr_objs)
         TestCaseList.append(newTestCase)
     return TestCaseList
 
-def build_UnitTestCases(TestCaseList) -> str:
+def build_UnitTestCases(TestCaseList: list[UnitTestCase]) -> str:
     class_name = TestCaseList[0].main_obj.class_name
     return_str = f"### unit testing for {class_name}\n"
     for i, testCase in enumerate(TestCaseList, start=1):
@@ -79,11 +78,11 @@ def build_UnitTestCases(TestCaseList) -> str:
             elif isinstance(methodCall, Assertion):
                 if methodCall.attr != None:
                     return_str += (f"    test{count} = {main_obj_name}.{methodCall.attr}\n")
-                    return_str += (f"    assert test{count} == test{count}\n")
+                    return_str +=(f"    assert test{count} == test{count}\n")
                     count +=1
                 elif methodCall.MethodCall != None:
                     return_str += (f"    test{count} = {main_obj_name}{methodCall.MethodCall.call_str()}\n")
-                    return_str += (f"    assert test{count} == test{count}\n")
+                    return_str +=(f"    assert test{count} == test{count}\n")
                     count+=1
     return return_str + "\n\n"
 
@@ -106,15 +105,15 @@ def generate_PairwiseTestCase_List(classList: list[ClassScanner], classObj1: Cla
     for d in (classObj1.required_object_count, classObj2.required_object_count):
         for k, v in d.items():
             required_sub_obj[k] = max(required_sub_obj[k], v)
-    for _ in range(CASE_PER_SUITE):
+    for i in range(5):
         required_sub_obj[classObj1.name]+=1
         required_sub_obj[classObj2.name]+=1
         rand_device = RandomObject(required_sub_obj)
         required_sub_obj[classObj1.name]-=1
         required_sub_obj[classObj2.name]-=1
         #initialize main_obj for the testcase
-        main_obj1 = Genome(classObj1.name, RandomInit(classObj1, rand_device))
-        main_obj2 = Genome(classObj2.name, RandomInit(classObj2, rand_device))
+        main_obj1 = Genome(classObj1.name, *RandomObject.RandomInit(classObj1, rand_device))
+        main_obj2 = Genome(classObj2.name, *RandomObject.RandomInit(classObj2, rand_device))
         add_random_methodcall_sequence(classObj1, main_obj1, rand_device)
         add_random_methodcall_sequence(classObj2, main_obj2, rand_device)
         # initialize surrounding_objs for the testcase
@@ -122,13 +121,13 @@ def generate_PairwiseTestCase_List(classList: list[ClassScanner], classObj1: Cla
         surr_objs = []
         for classObject in classList:
             for _ in range(required_sub_obj[classObject.name]):
-                new_obj = Genome(classObject.name, RandomInit(classObject, rand_device)) 
+                new_obj = Genome(classObject.name, *RandomObject.RandomInit(classObject, rand_device)) 
                 surr_objs.append(new_obj)
         newTestCase = PairwiseTestCase(main_obj1, main_obj2, surr_objs)
         TestCaseList.append(newTestCase)
     return TestCaseList
 
-def build_PairwiseTestCases(TestCaseList) -> str:
+def build_PairwiseTestCases(TestCaseList: list[PairwiseTestCase]) -> str:
     class_name1 = TestCaseList[0].main_obj1.class_name
     class_name2 = TestCaseList[0].main_obj2.class_name
     return_str = f"### pairwise testing for {class_name1} and {class_name2}\n"
@@ -165,11 +164,11 @@ def build_PairwiseTestCases(TestCaseList) -> str:
             elif isinstance(methodCall, Assertion):
                 if methodCall.attr != None:
                     return_str += (f"    test{count} = {main_obj_name}.{methodCall.attr}\n")
-                    return_str += (f"    assert test{count} == test{count}\n")
+                    return_str +=(f"    assert test{count} == test{count}\n")
                     count +=1
                 elif methodCall.MethodCall != None:
                     return_str += (f"    test{count} = {main_obj_name}{methodCall.MethodCall.call_str()}\n")
-                    return_str += (f"    assert test{count} == test{count}\n")
+                    return_str +=(f"    assert test{count} == test{count}\n")
                     count+=1
     return return_str + "\n\n"
 

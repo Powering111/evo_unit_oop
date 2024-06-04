@@ -1,6 +1,6 @@
 import ast 
 from collections import defaultdict
-from evolution.random_object import RandomObject, RandomInit
+from evolution.random_object import RandomObject
 
 # Find class in target file and execute scanner
 class ClassFinder(ast.NodeVisitor):
@@ -15,7 +15,7 @@ class ClassFinder(ast.NodeVisitor):
         setattr(RandomObject, f"prev_{newClass.name}", [])
         def rand_newClass(randself): 
             def randfunc():
-                attrs = RandomInit(newClass, randself) ## maybe change to re-initialized random device
+                attrs = RandomObject.RandomInit(newClass, randself) ## maybe change to re-initialized random device
                 return f"target.{newClass.name}({','.join(str(x) for x in attrs)})"
             return getattr(randself, "prev_or_new")(newClass.name, randfunc)
         setattr(RandomObject, f"rand_{newClass.name}", rand_newClass)

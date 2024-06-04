@@ -1,18 +1,20 @@
 import ast
+from evolution.random_object import RandomObject
 from evolution.scanner import *
 from evolution.testCase import *
 from evolution.genome import *
 from evolution.testSuite import *
-import evolution.reproduction as evo_rep
+from evolution.reproduction import *
 from evolution.record_evolution import write_to_csv
 from fitness.combine import fitness_score_by_class
-from evolution.settings import *
+import pathlib
+
 
 def fitness_score(target_code: str, test_suite: TestSuite, class_name1: str, class_name2: str | None = None) -> float:
     test_code = test_suite.build_testcases()
-
+    # print(test_code)
     fitness_score = fitness_score_by_class(target_code, test_code)
-
+    #print(fitness_score)
     if class_name2 == None: 
         return fitness_score[class_name1]
     else:
@@ -25,7 +27,6 @@ class Evolution():
         self.finder.visit(ast.parse(target_code))
         self.target_code = target_code
         self.target_name = target_name
-
     def evolution(self, threshold_score: float, max_generation: int, csv_path=None):
         test_code = ""
         for classObj in self.finder.classList:
@@ -54,7 +55,7 @@ class Generation():
         self.class_name2 = None if classObj2==None else classObj2.name
         self.record_fitness = []
         print(self.classObj1.name, self.class_name2)
-        for _ in range(POP_PER_GEN):
+        for _ in range(10):
             newTestSuite = TestSuite(is_unit)
             newTestSuite.random_testCaseList(finder.classList, classObj1, classObj2)
             #print(test_code)
@@ -64,23 +65,21 @@ class Generation():
             self.current_population.append((newTestSuite, fitness))
 
     def next_generation(self):
-        keep_clean = round(KEEP_CLEAN_RAT * POP_PER_GEN)
-        keep_mut = keep_clean + round(KEEP_MUT_RAT * POP_PER_GEN)
-        rep_from = round(REP_FROM_RAT * POP_PER_GEN)
-        for i in range(keep_clean, POP_PER_GEN):
-            if i < keep_mut:
-                evo_rep.mutate(self.current_population[i][0], self.classObj1, self.classObj2)
+        for i in range(2, 10):
+            if i < 5:
+                mutate(self.current_population[i][0], self.classObj1, self.classObj2)
                 new_testSuite = self.current_population[i][0]
             else: 
-                new_testSuite = evo_rep.reproduce_testSuite(self.current_population[:rep_from])
-                evo_rep.mutate(new_testSuite, self.classObj1, self.classObj2)
+                new_testSuite = reproduce_testSuite(self.current_population[:5])
+                mutate(new_testSuite, self.classObj1, self.classObj2)
             fitness = fitness_score(self.target_code, new_testSuite, self.classObj1.name, self.class_name2)
             #print(test_code)
             print(fitness)
             self.current_population[i] = (new_testSuite, fitness)
 
+    
     def evolve(self, threshold_score: float, max_generation: int) -> list[UnitTestCase|PairwiseTestCase]:
-        for _ in range(max_generation):
+        for i in range(max_generation):
             self.current_population.sort(key=lambda tup: tup[1], reverse=True)
             self.record_fitness.append([tup[1] for tup in self.current_population])
             print("top:", self.current_population[0][1])
