@@ -1,9 +1,10 @@
+from fitness.settings import MUTATION_ALPHA
 from . import fitness_cov, fitness_mut
 from . import helper
+from .settings import *
+import numpy as np
 
 def fitness_score (target_code: str, test_suite: str, verbose = False) -> float :
-
-    print(test_suite)
 
     def log (*x) :
         if verbose : print(*x)
@@ -21,20 +22,24 @@ def fitness_score (target_code: str, test_suite: str, verbose = False) -> float 
         print("Coverage", c)
     
     fitness = fitness_cov.coverage_score() 
-    time = None
+    fitness /= 2
 
-    if helper.DO_MUTATION_TESTING and fitness > 1.5 : 
+    if DO_MUTATION_TESTING : 
         m = fitness_mut.parse_mutation(fitness_mut.get_mutation())
         log("Mutation", m)
 
         (mut, time) = fitness_mut.mutation_score()
-        fitness += mut
+        fitness += mut * MUTATION_ALPHA 
 
     length = max(1, len(test_suite) / 1000)
     log("length is", length, "k characters")
 
-    fitness /= 3
+    if DO_REC_LENGTH: 
+        fitness += REC_LENGTH_ALPHA * 1/length
 
+    # sigmoid, normalizes to [0, 1)
+    fitness = 2/(1 + np.exp(-fitness)) - 1
+        
     log("fitness: ", fitness)
     return fitness
 

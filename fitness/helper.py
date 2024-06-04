@@ -49,14 +49,14 @@ def make_testsuite () :
             if not len(node.test.comparators) == 1:         return node 
             rhs = node.test.comparators[0]
 
-            node.test.left = ast.Call(ast.Name("pickle.dumps"), [node.test.left], [])
+            node.test.left = ast.Call(ast.Name("pickle.dumps"), [node.test.left, ast.Constant(-1)], [])
             node.test.comparators[0] = ast.Call(ast.Name(LOGGER_NAME), [rhs], [])
             return node
 
         test_root.body = walk(test_root.body, instrument)                         # type: ignore
 
         # TODO: this logger kinda assume the data to be string only
-        logger = ast.parse(f"def {LOGGER_NAME} (x): x = pickle.dumps(x); print('{ASSERT_STR}', x); return x")
+        logger = ast.parse(f"def {LOGGER_NAME} (x): x = pickle.dumps(x, -1); print('{ASSERT_STR}', x); return x")
 
         with open ('instrument.py', 'w') as f: 
             f.write('import pickle\n\n')
@@ -69,8 +69,10 @@ def make_testsuite () :
             result = sp.run(f"pytest -rP {path}", shell=True, check=True, capture_output=True, timeout=10)
         except sp.TimeoutExpired:
             os.chdir(oldcwd)
+            print("INSTRUMENTATION TIMEOUT")
             raise makeTestsuiteFailedException
-        except sp.CalledProcessError:
+        except sp.CalledProcessError as e:
+            print("INSTRUMENTATION PROCESS ERROR")
             os.chdir(oldcwd)
             raise makeTestsuiteFailedException
 
@@ -85,7 +87,7 @@ def make_testsuite () :
             if not len(node.test.comparators) == 1:         return node 
 
             result = results.pop(0)
-            node.test.left = ast.Call(ast.Name('str'), [ast.Call(ast.Name("pickle.dumps"), [node.test.left], [])], [])
+            node.test.left = ast.Call(ast.Name('str'), [ast.Call(ast.Name("pickle.dumps"), [node.test.left, ast.Constant(-1)], [])], [])
             node.test.comparators[0] = ast.Constant(result)
             return node
 

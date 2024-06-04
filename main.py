@@ -16,15 +16,22 @@ import {module_name} as target
 
 def evolution (target) : 
     target_code = target.read_text()
-    final_test_code =  Evolution(target_code, str(target.stem)).evolution(0.9, 10)
+    final_test_code =  Evolution(target_code, str(target.stem)).evolution(0.9, 3)
 
     path_to_write = (target.parent / "testsuites" / f"test_{target.stem}.py")
     module_name = str(target).replace(pathlib.os.sep, '.')[:-3]
     to_write = TEST_HEADER(module_name) + final_test_code
 
     path_to_write.write_text(to_write)
+    print("Written to ", path_to_write)
 
     combine.fitness_score(target_code, "import target\n"+final_test_code, verbose=True)
+
+def fitness (target, suite) :
+    target_code = target.read_text()
+    suite_code = suite.read_text()
+
+    combine.fitness_score(target_code, suite_code, verbose=True)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Rewrites programs.')
@@ -55,4 +62,4 @@ if __name__ == '__main__':
     if command == "evolution" : 
         evolution(target)
     if command == "fitness" : 
-        pass
+        fitness(target, suite)

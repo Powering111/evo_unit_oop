@@ -14,10 +14,24 @@ TMP_DIR = '/tmp/oop_test_gen'
 TARGET_FILENAME = 'target.py'
 TEST_FILENAME = 'test_target.py'
 
+# defines if mutation is considered (extremely slower) and the weight of mutation to coverage
+# mutation alpha of 1 means equal contribution to coverage, 2 means twice emphasis on mutation, and so on
+DO_MUTATION_TESTING = False
+MUTATION_ALPHA = 1
+
+# defines if reciprocal of length (in thousand characters) will be used
+# alpha of 1 means "equal" contribution to coverage, 2 means twice emphasis on rep_length, and so on
+# reciprocal defined as min(1, 1000/length)
+DO_REC_LENGTH = True
+REC_LENGTH_ALPHA = 0.05
+
+USE_PYTEST = False
+
+####################################################################
+
+# if we do mutation testing, we have to use pytest.
+USE_PYTEST |= DO_MUTATION_TESTING
+
 TARGET_PATH = os.path.join(TMP_DIR, TARGET_FILENAME)
 TEST_PATH = os.path.join(TMP_DIR, TEST_FILENAME)
 
-DO_MUTATION_TESTING = False
-
-# if we do mutation testing, we have to use pytest.
-USE_PYTEST = DO_MUTATION_TESTING or False

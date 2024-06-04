@@ -6,14 +6,17 @@ from evolution.genome import *
 from evolution.testSuite import *
 from evolution.reproduction import *
 from evolution.record_evolution import write_to_csv
-from fitness.combine import fitness_score_by_class
+from fitness import combine
 from evolution.settings import *
 
 def fitness_score(target_code: str, test_suite: TestSuite, class_name1: str, class_name2: str | None = None) -> float:
     test_code = test_suite.build_testcases()
-    # print(test_code)
-    fitness_score = fitness_score_by_class(target_code, test_code)
-    #print(fitness_score)
+
+    # fitness_score = combine.fitness_score(target_code, test_code)
+    # return fitness_score
+
+    fitness_score = combine.fitness_score_by_class(target_code, test_code)
+
     if class_name2 == None: 
         return fitness_score[class_name1]
     else:
@@ -53,14 +56,14 @@ class Generation():
         self.classObj2 = classObj2
         self.class_name2 = None if classObj2==None else classObj2.name
         self.record_fitness = []
-        print(self.classObj1.name, self.class_name2)
+        print("Generating for", self.classObj1.name, self.class_name2)
         for _ in range(POP_PER_GEN):
             newTestSuite = TestSuite(is_unit)
             newTestSuite.random_testCaseList(finder.classList, classObj1, classObj2)
             #print(test_code)
             fitness = fitness_score(self.target_code, newTestSuite, self.classObj1.name, self.class_name2)
             #print(self.target_code)
-            print(fitness)
+            if VERBOSE: print(fitness)
             self.current_population.append((newTestSuite, fitness))
 
     def next_generation(self):
@@ -73,7 +76,7 @@ class Generation():
                 mutate(new_testSuite, self.classObj1, self.classObj2)
             fitness = fitness_score(self.target_code, new_testSuite, self.classObj1.name, self.class_name2)
             #print(test_code)
-            print(fitness)
+            if VERBOSE: print(fitness)
             self.current_population[i] = (new_testSuite, fitness)
 
     
@@ -81,8 +84,9 @@ class Generation():
         for i in range(max_generation):
             self.current_population.sort(key=lambda tup: tup[1], reverse=True)
             self.record_fitness.append([tup[1] for tup in self.current_population])
-            print("top:", self.current_population[0][1])
+            if VERBOSE: print("top:", self.current_population[0][1])
             if self.current_population[0][1] >= threshold_score:
                 break
             self.next_generation()
+        print(self.current_population[0][1])
         return self.current_population[0][0].testCaselist

@@ -22,18 +22,19 @@ def get_coverage () -> dict|None:
         else:
             cmd=f"coverage run --branch {helper.TEST_PATH}"
 
-        process = sp.Popen(args=cmd.split(), stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+        process = sp.Popen(args=cmd.split(), stdout=sp.PIPE, stderr=sp.DEVNULL)
         process.wait(10)
     except sp.CalledProcessError:
-        print("PROCESS ERROR")
+        print("COVERAGE PROCESS ERROR")
         pass
     except sp.TimeoutExpired:
         print("timeout while measuring coverage")
         if process is not None:
             process.kill()
     try:
-        sp.run("coverage json --pretty-print -o cov.json", shell=True, check=True, capture_output=True)
+        sp.run("coverage json -o cov.json", shell=True, check=True, capture_output=False)
     except sp.CalledProcessError:
+        print("COVERAGE JSON ERROR")
         os.chdir(oldcwd)
         return None
     # get result
@@ -46,7 +47,9 @@ def get_coverage () -> dict|None:
 
     os.chdir(oldcwd)
 
-    if len(target_result) != 1: return None
+    if len(target_result) != 1: 
+        print("Coverage Result Not Found")
+        return None
     return result_obj['files'][target_result[0]]
 
 def parse_coverage (cov) :

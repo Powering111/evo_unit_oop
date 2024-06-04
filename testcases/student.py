@@ -1,7 +1,5 @@
 # Student and class implementation
 
-from typing_extensions import Self
-
 class Index:
     def __init__(self, index:int):
         self.index=index
@@ -29,7 +27,9 @@ class Class:
         self.students.append(student)
         return Index(len(self.students))
     
-    def get_student(self,index: Index)->Student:
+    def get_student(self,index: Index)->Student|None:
+        if int(index) > len(self.students) or int(index) < 1: 
+            return None
         return self.students[int(index)-1]
     
     # find student by name and return the index
@@ -37,8 +37,8 @@ class Class:
     def find_student_by_name(self, to_search:str)->Index:
         for (index,student) in enumerate(self.students):
             if student.name == to_search :
-                return index+1
-        return 0
+                return Index(int(index)+1)
+        return Index(0)
     
     def has_uniform_grade(self)->bool:
         if len(self.students)>0:
