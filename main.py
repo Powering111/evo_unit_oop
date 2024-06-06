@@ -3,6 +3,7 @@ import argparse
 import pathlib
 from evolution.evolve import Evolution
 from fitness import combine
+from fitness.helper import get_full_testsuite_code
 
 TEST_HEADER = lambda module_name: f"""
 import sys
@@ -16,16 +17,19 @@ import {module_name} as target
 
 def evolution (target) : 
     target_code = target.read_text()
-    final_test_code =  Evolution(target_code, str(target.stem)).evolution(0.9, 3)
+    evo_test_code =  Evolution(target_code, str(target.stem)).evolution(0.9, 3)
+    
+    full_test_code = get_full_testsuite_code("import target\n" + evo_test_code)
+    full_test_code = '\n'.join(line for line in full_test_code.split('\n') if line != "import target")
 
     path_to_write = (target.parent / "testsuites" / f"test_{target.stem}.py")
     module_name = str(target).replace(pathlib.os.sep, '.')[:-3]
-    to_write = TEST_HEADER(module_name) + final_test_code
+    to_write = TEST_HEADER(module_name) + full_test_code
 
     path_to_write.write_text(to_write)
     print("Written to ", path_to_write)
 
-    combine.fitness_score(target_code, "import target\n"+final_test_code, verbose=True)
+    combine.fitness_score(target_code, "import target\n"+full_test_code, verbose=True)
 
 def fitness (target, suite) :
     target_code = target.read_text()
@@ -56,6 +60,7 @@ if __name__ == '__main__':
         if not (suite.exists() and suite.is_file()):
             parser.error('Argument error: suite has to be an existing file')
     #########################################################################   
+
     sys.argv[1:] = args.remaining
     command = args.command[0]
     

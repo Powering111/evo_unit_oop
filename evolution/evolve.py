@@ -12,8 +12,8 @@ from evolution.settings import *
 def fitness_score(target_code: str, test_suite: TestSuite, class_name1: str, class_name2: str | None = None) -> float:
     test_code = test_suite.build_testcases()
 
-    # fitness_score = combine.fitness_score(target_code, test_code)
-    # return fitness_score
+    fitness_score = combine.fitness_score(target_code, test_code)
+    return fitness_score
 
     fitness_score = combine.fitness_score_by_class(target_code, test_code)
 

@@ -31,10 +31,11 @@ def fitness_score (target_code: str, test_suite: str, verbose = False) -> float 
         (mut, time) = fitness_mut.mutation_score()
         fitness += mut * MUTATION_ALPHA 
 
-    length = max(1, len(test_suite) / 1000)
-    log("length is", length, "k characters")
 
     if DO_REC_LENGTH: 
+        length = max(1, len(test_suite) / 1000)
+        log("length is", length, "k characters")
+
         fitness += REC_LENGTH_ALPHA * 1/length
 
     # sigmoid, normalizes to [0, 1)

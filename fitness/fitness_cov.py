@@ -22,7 +22,7 @@ def get_coverage () -> dict|None:
         else:
             cmd=f"coverage run --branch {helper.TEST_PATH}"
 
-        process = sp.Popen(args=cmd.split(), stdout=sp.PIPE, stderr=sp.DEVNULL)
+        process = sp.Popen(args=cmd.split(), stdout=sp.DEVNULL, stderr=sp.DEVNULL)
         process.wait(10)
     except sp.CalledProcessError:
         print("COVERAGE PROCESS ERROR")
@@ -32,7 +32,7 @@ def get_coverage () -> dict|None:
         if process is not None:
             process.kill()
     try:
-        sp.run("coverage json -o cov.json", shell=True, check=True, capture_output=False)
+        sp.run("coverage json -o cov.json", shell=True, check=True, capture_output=True)
     except sp.CalledProcessError:
         print("COVERAGE JSON ERROR")
         os.chdir(oldcwd)

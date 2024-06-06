@@ -33,74 +33,82 @@ def walk(node, mutator, *args):
 class makeTestsuiteFailedException(Exception): pass
 
 # This rewrite the TEST_PATH as a result
+def make_full_testsuite (test_code, test_path):
+    test_root = ast.parse(test_code)
+
+    oldcwd = os.getcwd()
+    os.chdir(TMP_DIR)
+    def instrument (node): 
+        if not isinstance(node, ast.Assert) :           return node
+        if not isinstance(node.test, ast.Compare):      return node 
+        if not len(node.test.ops) == 1:                 return node 
+        if not isinstance(node.test.ops[0], ast.Eq) :   return node
+        if not len(node.test.comparators) == 1:         return node 
+        rhs = node.test.comparators[0]
+
+        node.test.left = ast.Call(ast.Name("pickle.dumps"), [node.test.left, ast.Constant(-1)], [])
+        node.test.comparators[0] = ast.Call(ast.Name(LOGGER_NAME), [rhs], [])
+        return node
+
+    test_root.body = walk(test_root.body, instrument)                         # type: ignore
+
+    logger = ast.parse(f"def {LOGGER_NAME} (x): x = pickle.dumps(x, -1); print('{ASSERT_STR}', x); return x")
+
+    with open ('instrument.py', 'w') as f: 
+        f.write('import pickle\n\n')
+        f.write(ast.unparse(logger))
+        f.write('\n\n')
+        f.write(ast.unparse(test_root))
+
+    path = os.path.join(TMP_DIR, "instrument.py")
+    try:
+        result = sp.run(f"pytest -rP {path}", shell=True, check=True, capture_output=True, timeout=10)
+    except sp.TimeoutExpired:
+        os.chdir(oldcwd)
+        print("INSTRUMENTATION TIMEOUT")
+        raise makeTestsuiteFailedException
+    except sp.CalledProcessError as e:
+        print("INSTRUMENTATION PROCESS ERROR")
+        os.chdir(oldcwd)
+        raise makeTestsuiteFailedException
+
+    lines = result.stdout.decode().split('\n')
+    assert_lines = [' '.join(line.split(' ')[1:]) for line in lines if ASSERT_STR in line]
+        
+    def patch_result (node, results): 
+        if not isinstance(node, ast.Assert) :           return node
+        if not isinstance(node.test, ast.Compare):      return node 
+        if not len(node.test.ops) == 1:                 return node 
+        if not isinstance(node.test.ops[0], ast.Eq) :   return node
+        if not len(node.test.comparators) == 1:         return node 
+
+        result = results.pop(0)
+        node.test.left = ast.Call(ast.Name('str'), [ast.Call(ast.Name("pickle.dumps"), [node.test.left, ast.Constant(-1)], [])], [])
+        node.test.comparators[0] = ast.Constant(result)
+        return node
+
+    test_root = ast.parse(test_code)
+    test_root.body = walk(test_root.body, patch_result, assert_lines)             # type: ignore
+    
+    to_write = 'import pickle\n\n'
+    to_write += ast.unparse(test_root)
+    test_path.write_text(to_write)
+
+    os.chdir(oldcwd)
+    return to_write
+
+def get_full_testsuite_code (test_code):
+    test_path = pathlib.Path(TEST_PATH)
+    return make_full_testsuite(test_code, test_path)
+
+# This rewrite the TEST_PATH as a result
 def make_testsuite () :
     test_path = pathlib.Path(TEST_PATH)
     test_code = test_path.read_text()
     test_root = ast.parse(test_code)
 
-    if DO_MUTATION_TESTING:
-        oldcwd = os.getcwd()
-        os.chdir(TMP_DIR)
-        def instrument (node): 
-            if not isinstance(node, ast.Assert) :           return node
-            if not isinstance(node.test, ast.Compare):      return node 
-            if not len(node.test.ops) == 1:                 return node 
-            if not isinstance(node.test.ops[0], ast.Eq) :   return node
-            if not len(node.test.comparators) == 1:         return node 
-            rhs = node.test.comparators[0]
-
-            node.test.left = ast.Call(ast.Name("pickle.dumps"), [node.test.left, ast.Constant(-1)], [])
-            node.test.comparators[0] = ast.Call(ast.Name(LOGGER_NAME), [rhs], [])
-            return node
-
-        test_root.body = walk(test_root.body, instrument)                         # type: ignore
-
-        # TODO: this logger kinda assume the data to be string only
-        logger = ast.parse(f"def {LOGGER_NAME} (x): x = pickle.dumps(x, -1); print('{ASSERT_STR}', x); return x")
-
-        with open ('instrument.py', 'w') as f: 
-            f.write('import pickle\n\n')
-            f.write(ast.unparse(logger))
-            f.write('\n\n')
-            f.write(ast.unparse(test_root))
-
-        path = os.path.join(TMP_DIR, "instrument.py")
-        try:
-            result = sp.run(f"pytest -rP {path}", shell=True, check=True, capture_output=True, timeout=10)
-        except sp.TimeoutExpired:
-            os.chdir(oldcwd)
-            print("INSTRUMENTATION TIMEOUT")
-            raise makeTestsuiteFailedException
-        except sp.CalledProcessError as e:
-            print("INSTRUMENTATION PROCESS ERROR")
-            os.chdir(oldcwd)
-            raise makeTestsuiteFailedException
-
-        lines = result.stdout.decode().split('\n')
-        assert_lines = [' '.join(line.split(' ')[1:]) for line in lines if ASSERT_STR in line]
-        
-        def patch_result (node, results): 
-            if not isinstance(node, ast.Assert) :           return node
-            if not isinstance(node.test, ast.Compare):      return node 
-            if not len(node.test.ops) == 1:                 return node 
-            if not isinstance(node.test.ops[0], ast.Eq) :   return node
-            if not len(node.test.comparators) == 1:         return node 
-
-            result = results.pop(0)
-            node.test.left = ast.Call(ast.Name('str'), [ast.Call(ast.Name("pickle.dumps"), [node.test.left, ast.Constant(-1)], [])], [])
-            node.test.comparators[0] = ast.Constant(result)
-            return node
-
-        test_code = open(TEST_PATH).read() # why read twice?
-        test_root = ast.parse(test_code)
-        test_root.body = walk(test_root.body, patch_result, assert_lines)             # type: ignore
-        
-        to_write = 'import pickle\n\n'
-        to_write += ast.unparse(test_root)
-        test_path.write_text(to_write)
-
-        os.chdir(oldcwd)
-
+    if DO_MUTATION_TESTING : 
+        make_full_testsuite(test_code, test_path)
     else:
         to_write = test_code+"\n\n"
         if not USE_PYTEST:
@@ -110,4 +118,3 @@ def make_testsuite () :
                     to_write += f"{node.name}()\n"
         test_path.write_text(to_write)
     
-
