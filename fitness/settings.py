@@ -9,14 +9,14 @@ TEST_FILENAME = 'test_target.py'
 
 # defines if mutation is considered (extremely slower) and the weight of mutation to coverage
 # mutation alpha of 1 means equal contribution to coverage, 2 means twice emphasis on mutation, and so on
-DO_MUTATION_TESTING = False
-MUTATION_ALPHA = 1
+MUTATION_ALPHA = 0
 
 # defines if reciprocal of length (in thousand characters) will be used
 # alpha of 1 means "equal" contribution to coverage, 2 means twice emphasis on rep_length, and so on
 # reciprocal defined as min(1, 1000/length)
-DO_REC_LENGTH = True
-REC_LENGTH_ALPHA = 0.05
+REC_LENGTH_ALPHA = 0 # 0.05
+
+LENGTH_ALPHA = 0.05
 
 USE_PYTEST = False
 
@@ -28,6 +28,10 @@ USE_PYTEST = False
 LOGGER_NAME = "log_" + str(uuid.uuid4().hex)[:5]
 ASSERT_STR = "assert_" + str(uuid.uuid4().hex)[:5]
 STRINGIFY_NAME = "strfy_" + str(uuid.uuid4().hex)[:5]
+
+DO_MUTATION_TESTING = MUTATION_ALPHA != 0
+DO_REC_LENGTH = REC_LENGTH_ALPHA != 0
+DO_LENGTH = LENGTH_ALPHA != 0
 
 # if we do mutation testing, we have to use pytest.
 USE_PYTEST |= DO_MUTATION_TESTING

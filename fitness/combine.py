@@ -24,26 +24,26 @@ def fitness_score (target_code: str, test_suite: str, verbose = False) -> float 
     fitness = fitness_cov.coverage_score() 
     fitness /= 2
 
+    length = max(1, len(test_suite) / 1000)
+    log("length is", length, "k characters")
+
     if DO_MUTATION_TESTING : 
         m = fitness_mut.parse_mutation(fitness_mut.get_mutation())
         log("Mutation", m)
 
-        (mut, time) = fitness_mut.mutation_score()
+        (mut, _) = fitness_mut.mutation_score()
         fitness += mut * MUTATION_ALPHA 
 
-
     if DO_REC_LENGTH: 
-        length = max(1, len(test_suite) / 1000)
-        log("length is", length, "k characters")
-
         fitness += REC_LENGTH_ALPHA * 1/length
 
-    # sigmoid, normalizes to [0, 1)
+    if DO_LENGTH: 
+        fitness += LENGTH_ALPHA * length
+
+    # sigmoid-like, normalizes to [0, 1)
     fitness = 2/(1 + np.exp(-fitness)) - 1
-        
     log("fitness: ", fitness)
     return fitness
-
 
 # Returns mapping from class name to the corresponding fitness.
 # it only measures coverage.
