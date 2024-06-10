@@ -4,7 +4,7 @@ from . import helper
 from .settings import *
 import numpy as np
 
-def fitness_score (target_code: str, test_suite: str, verbose = False) -> float :
+def fitness_precombine (target_code: str, test_suite: str, verbose = False) -> list[float] :
 
     def log (*x) :
         if verbose : print(*x)
@@ -14,7 +14,7 @@ def fitness_score (target_code: str, test_suite: str, verbose = False) -> float 
     try:
         helper.make_testsuite() 
     except helper.makeTestsuiteFailedException:
-        return 0 # test suite creation failed due to infinite loop, runtime error, etc.
+        return [0] # test suite creation failed due to infinite loop, runtime error, etc.
 
     if verbose: 
         print("Test suite made")
@@ -24,6 +24,8 @@ def fitness_score (target_code: str, test_suite: str, verbose = False) -> float 
     fitness = fitness_cov.coverage_score() 
     fitness /= 2
 
+    result = [fitness]
+
     length = max(1, len(test_suite) / 1000)
     log("length is", length, "k characters")
 
@@ -32,17 +34,36 @@ def fitness_score (target_code: str, test_suite: str, verbose = False) -> float 
         log("Mutation", m)
 
         (mut, _) = fitness_mut.mutation_score()
-        fitness += mut * MUTATION_ALPHA 
+        result.append(mut)
 
     if DO_REC_LENGTH: 
-        fitness += REC_LENGTH_ALPHA * 1/length
+        result.append(1/length)
 
     if DO_LENGTH: 
-        fitness += LENGTH_ALPHA * length
+        result.append(length)
+
+    return result
+
+def fitness_score (*args, **kwargs) -> float :
+
+    parts = fitness_precombine(*args, **kwargs)
+    fitness = parts[0]
+    index = 1
+
+    if DO_MUTATION_TESTING : 
+        fitness += MUTATION_ALPHA * parts[index]
+        index += 1
+
+    if DO_REC_LENGTH: 
+        fitness += REC_LENGTH_ALPHA * parts[index]
+        index += 1
+
+    if DO_LENGTH: 
+        fitness += LENGTH_ALPHA * parts[index]
+        index += 1
 
     # sigmoid-like, normalizes to [0, 1)
     fitness = 2/(1 + np.exp(-fitness)) - 1
-    log("fitness: ", fitness)
     return fitness
 
 # Returns mapping from class name to the corresponding fitness.

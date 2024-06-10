@@ -56,7 +56,7 @@ class Generation():
         self.classObj2 = classObj2
         self.class_name2 = None if classObj2==None else classObj2.name
         self.record_fitness = []
-        print("Generating for", self.classObj1.name, self.class_name2)
+        if not QUIET: print("Generating for", self.classObj1.name, self.class_name2)
         for _ in range(POP_PER_GEN):
             newTestSuite = TestSuite(is_unit)
             newTestSuite.random_testCaseList(finder.classList, classObj1, classObj2)
@@ -88,5 +88,5 @@ class Generation():
             if self.current_population[0][1] >= threshold_score:
                 break
             self.next_generation()
-        print(self.current_population[0][1])
+        if not QUIET: print(self.current_population[0][1])
         return self.current_population[0][0].testCaselist

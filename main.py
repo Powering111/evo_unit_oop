@@ -5,13 +5,17 @@ from evolution.evolve import Evolution
 from fitness import combine
 from fitness.helper import get_full_testsuite_code
 
-TEST_HEADER = lambda module_name: f"""
-import sys
-import os
-curr_dir = os.getcwd()
-sys.path.insert(1, curr_dir)
-
-import {module_name} as target
+# TEST_HEADER = lambda module_name: f"""
+# import sys
+# import os
+# curr_dir = os.getcwd()
+# sys.path.insert(1, curr_dir)
+#
+# import {module_name} as target
+#
+# """
+TEST_HEADER = lambda _: f"""
+import target
 
 """
 

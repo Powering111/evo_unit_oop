@@ -14,9 +14,9 @@ MUTATION_ALPHA = 0
 # defines if reciprocal of length (in thousand characters) will be used
 # alpha of 1 means "equal" contribution to coverage, 2 means twice emphasis on rep_length, and so on
 # reciprocal defined as min(1, 1000/length)
-REC_LENGTH_ALPHA = 0 # 0.05
+REC_LENGTH_ALPHA = 0.05
 
-LENGTH_ALPHA = 0.05
+LENGTH_ALPHA = 0
 
 USE_PYTEST = False
 
@@ -39,3 +39,9 @@ USE_PYTEST |= DO_MUTATION_TESTING
 TARGET_PATH = os.path.join(TMP_DIR, TARGET_FILENAME)
 TEST_PATH = os.path.join(TMP_DIR, TEST_FILENAME)
 
+#####################################################################
+
+def print_settings (): 
+    if DO_MUTATION_TESTING: print("MUTATION: ", MUTATION_ALPHA)
+    if DO_REC_LENGTH: print("REC_LENGTH: ", REC_LENGTH_ALPHA)
+    if DO_LENGTH: print("LENGTH: ", LENGTH_ALPHA)
