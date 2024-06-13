@@ -1,0 +1,13 @@
+VERBOSE = False
+
+POP_PER_GEN = 20
+KEEP_CLEAN_RATIO = 0.2
+KEEP_MUT_RATIO = 0.5
+BREED_FROM_RATIO = 0.5
+
+CASE_PER_SUITE = 10
+
+#########################################################
+KEEP_CLEAN = round(POP_PER_GEN * KEEP_CLEAN_RATIO)
+KEEP_MUT = round(POP_PER_GEN * KEEP_MUT_RATIO)
+BREED_FROM = round(POP_PER_GEN * BREED_FROM_RATIO)

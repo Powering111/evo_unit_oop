@@ -3,8 +3,8 @@
 
 from typing_extensions import Self
 
-class InvalidArgumentException(Exception):
-    pass
+# class InvalidArgumentException(Exception):
+#     pass
 
 class Point:
     def __init__(self, x:float, y:float):
