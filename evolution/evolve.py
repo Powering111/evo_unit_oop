@@ -56,7 +56,8 @@ class Generation():
         self.classObj2 = classObj2
         self.class_name2 = None if classObj2==None else classObj2.name
         self.record_fitness = []
-        print("Generating for", self.classObj1.name, self.class_name2)
+        class2_name = "" if classObj2==None else classObj2.name
+        print("Generating for", self.classObj1.name, class2_name)
         for _ in range(POP_PER_GEN):
             newTestSuite = TestSuite(is_unit)
             newTestSuite.random_testCaseList(finder.classList, classObj1, classObj2)
