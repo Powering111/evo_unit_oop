@@ -1,0 +1,79 @@
+LENGTH:  0.05
+GENERATION 1
+POPULATION SIZE PER GENERATION 100
+KEEP CLEAN RATIO 0.2
+KEEP WITH MUTATION RATIO 0.5
+BREED FROM RATIO 0.5
+CASE PER SUITE 10
+###########################
+Written to  testcases/testsuites/test_student.py
+Test suite made
+Coverage ((34, 36), (12, 14))
+length is 41.722 k characters
+Test suite made
+Coverage ((34, 36), (12, 14))
+length is 41.724 k characters
+Written to  testcases/testsuites/test_student.py
+Test suite made
+Coverage ((34, 36), (12, 14))
+length is 38.264 k characters
+Test suite made
+Coverage ((34, 36), (12, 14))
+length is 38.266 k characters
+Written to  testcases/testsuites/test_student.py
+Test suite made
+Coverage ((33, 36), (11, 14))
+length is 40.559 k characters
+Test suite made
+Coverage ((33, 36), (11, 14))
+length is 40.561 k characters
+Written to  testcases/testsuites/test_student.py
+Test suite made
+Coverage ((34, 36), (12, 14))
+length is 37.168 k characters
+Test suite made
+Coverage ((34, 36), (12, 14))
+length is 37.17 k characters
+Written to  testcases/testsuites/test_student.py
+Test suite made
+Coverage ((34, 36), (12, 14))
+length is 40.259 k characters
+Test suite made
+Coverage ((34, 36), (12, 14))
+length is 40.261 k characters
+Written to  testcases/testsuites/test_student.py
+Test suite made
+Coverage ((35, 36), (13, 14))
+length is 40.45 k characters
+Test suite made
+Coverage ((35, 36), (13, 14))
+length is 40.452 k characters
+Written to  testcases/testsuites/test_student.py
+Test suite made
+Coverage ((33, 36), (11, 14))
+length is 39.817 k characters
+Test suite made
+Coverage ((33, 36), (11, 14))
+length is 39.819 k characters
+Written to  testcases/testsuites/test_student.py
+Test suite made
+Coverage ((34, 36), (12, 14))
+length is 40.342 k characters
+Test suite made
+Coverage ((34, 36), (12, 14))
+length is 40.344 k characters
+Written to  testcases/testsuites/test_student.py
+Test suite made
+Coverage ((34, 36), (12, 14))
+length is 39.273 k characters
+Test suite made
+Coverage ((34, 36), (12, 14))
+length is 39.275 k characters
+Written to  testcases/testsuites/test_student.py
+Test suite made
+Coverage ((33, 36), (11, 14))
+length is 39.579 k characters
+Test suite made
+Coverage ((33, 36), (11, 14))
+length is 39.581 k characters
+python experiment.py  7700.12s user 1052.07s system 98% cpu 2:27:25.04 total
