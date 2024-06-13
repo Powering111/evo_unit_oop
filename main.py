@@ -4,6 +4,7 @@ import pathlib
 from evolution.evolve import Evolution
 from fitness import combine
 from fitness.helper import get_full_testsuite_code
+from evolution.settings import GENERATION
 
 # TEST_HEADER = lambda module_name: f"""
 # import sys
@@ -21,7 +22,7 @@ import target
 
 def evolution (target) : 
     target_code = target.read_text()
-    evo_test_code =  Evolution(target_code, str(target.stem)).evolution(0.9, 3)
+    evo_test_code =  Evolution(target_code, str(target.stem)).evolution(0.9, GENERATION)
     
     full_test_code = get_full_testsuite_code("import target\n" + evo_test_code)
     full_test_code = '\n'.join(line for line in full_test_code.split('\n') if line != "import target")

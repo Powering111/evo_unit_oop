@@ -1,0 +1,69 @@
+LENGTH:  0.05
+POPULATION SIZE PER GENERATION 10
+KEEP CLEAN RATIO 0.2
+KEEP WITH MUTATION RATIO 0.5
+BREED FROM RATIO 0.5
+CASE PER SUITE 5
+###########################
+
+Coverage ((33, 36), (11, 14))
+length is 21.727 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 22.939 k characters
+
+Coverage ((33, 36), (10, 14))
+length is 23.429 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 20.591 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 19.733 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 24.531 k characters
+
+Coverage ((34, 36), (12, 14))
+length is 24.7 k characters
+
+Coverage ((32, 36), (10, 14))
+length is 23.186 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 28.256 k characters
+
+Coverage ((32, 36), (10, 14))
+length is 22.577 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 21.416 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 22.698 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 20.346 k characters
+
+Coverage ((32, 36), (10, 14))
+length is 19.737 k characters
+
+Coverage ((32, 36), (10, 14))
+length is 20.678 k characters
+
+Coverage ((32, 36), (10, 14))
+length is 18.527 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 25.265 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 20.849 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 23.166 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 22.488 k characters
+
+2920.98s user 4064s system 98% cpu 56:31.29 total

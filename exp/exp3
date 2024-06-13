@@ -1,0 +1,67 @@
+POPULATION SIZE PER GENERATION 10
+KEEP CLEAN RATIO 0.2
+KEEP WITH MUTATION RATIO 0.5
+BREED FROM RATIO 0.5
+CASE PER SUITE 5
+###########################
+
+Coverage ((32, 36), (10, 14))
+length is 17.785 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 19.012 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 19.782 k characters
+
+Coverage ((32, 36), (10, 14))
+length is 17.748 k characters
+
+Coverage ((32, 36), (10, 14))
+length is 18.543 k characters
+
+Coverage ((32, 36), (10, 14))
+length is 17.298 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 18.001 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 17.941 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 16.671 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 16.494 k characters
+
+Coverage ((33, 36), (10, 14))
+length is 14.498 k characters
+
+Coverage ((32, 36), (10, 14))
+length is 17.109 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 18.423 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 14.728 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 17.07 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 18.405 k characters
+
+Coverage ((32, 36), (10, 14))
+length is 16.836 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 19.197 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 20.031 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 16.732 k characters
+python experiment.py  2909.71s user 404.57s system 98% cpu 56:02.35 total

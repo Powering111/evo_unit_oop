@@ -1,0 +1,49 @@
+MUTATION:  1
+POPULATION SIZE PER GENERATION 10
+KEEP CLEAN RATIO 0.2
+KEEP WITH MUTATION RATIO 0.5
+BREED FROM RATIO 0.5
+CASE PER SUITE 5
+###########################
+
+Coverage ((33, 36), (11, 14))
+length is 16.582 k characters
+Mutation (19, 23, 32.608666)
+
+Coverage ((34, 36), (12, 14))
+length is 17.888 k characters
+Mutation (17, 21, 29.236686)
+
+Coverage ((33, 36), (11, 14))
+length is 20.105 k characters
+Mutation (19, 23, 32.964625)
+
+Coverage ((33, 36), (11, 14))
+length is 17.961 k characters
+Mutation (16, 21, 29.369018)
+
+Coverage ((33, 36), (11, 14))
+length is 16.806 k characters
+Mutation (13, 18, 25.000794)
+
+Coverage ((33, 36), (11, 14))
+length is 18.037 k characters
+Mutation (13, 18, 24.351385)
+
+Coverage ((34, 36), (12, 14))
+length is 19.343 k characters
+Mutation (21, 25, 34.979256)
+
+Coverage ((32, 36), (10, 14))
+length is 15.758 k characters
+Mutation (11, 18, 23.114429)
+
+Coverage ((33, 36), (11, 14))
+length is 17.754 k characters
+Mutation (21, 25, 34.078667)
+
+Coverage ((33, 36), (11, 14))
+length is 15.534 k characters
+Mutation (13, 18, 24.83116)
+
+72842.50s user 5106.00s system 99% cpu 21:41:49.57 total

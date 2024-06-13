@@ -1,0 +1,39 @@
+REC_LENGTH:  0.05
+GENERATION 10
+POPULATION SIZE PER GENERATION 20
+KEEP CLEAN RATIO 0.2
+KEEP WITH MUTATION RATIO 0.5
+BREED FROM RATIO 0.5
+CASE PER SUITE 10
+###########################
+
+Coverage ((32, 36), (10, 14))
+length is 34.62 k characters
+
+Coverage ((32, 36), (10, 14))
+length is 40.214 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 35.883 k characters
+
+Coverage ((32, 36), (10, 14))
+length is 35.8 k characters
+
+Coverage ((32, 36), (10, 14))
+length is 41.051 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 39.569 k characters
+
+Coverage ((34, 36), (12, 14))
+length is 43.186 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 35.455 k characters
+
+Coverage ((33, 36), (11, 14))
+length is 35.247 k characters
+
+Coverage ((32, 36), (10, 14))
+length is 34.348 k characters
+python experiment.py  7683.49s user 1051.23s system 98% cpu 2:27:09.26 total

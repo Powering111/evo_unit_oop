@@ -14,9 +14,9 @@ MUTATION_ALPHA = 0
 # defines if reciprocal of length (in thousand characters) will be used
 # alpha of 1 means "equal" contribution to coverage, 2 means twice emphasis on rep_length, and so on
 # reciprocal defined as min(1, 1000/length)
-REC_LENGTH_ALPHA = 0.05
+REC_LENGTH_ALPHA = 0
 
-LENGTH_ALPHA = 0
+LENGTH_ALPHA = 0.05
 
 USE_PYTEST = False
 
